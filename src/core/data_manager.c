@@ -294,22 +294,27 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
             }
         }
 
-        // Load projectiles
-        if (projectiles_len  != 0) {
-            projectile_def_t * projectile_def = projectile_defs;
-            MemcpyBanked(projectile_def, scn.projectiles.ptr, sizeof(projectile_def_t) * projectiles_len, scn.projectiles.bank);
-            for (i = projectiles_len; i != 0; i--, projectile_def++) {
-                // resolve and set base_tile for each projectile
-                UBYTE idx = IndexOfFarPtr(scn.sprites.ptr, scn.sprites.bank, sprites_len, &projectile_def->sprite);
-                projectile_def->base_tile = (idx < sprites_len) ? scene_sprites_base_tiles[idx] : 0;
-            }
-        }
-
     } else {
         actor_t *actor = actors_active_head;
         while (actor) {
+            // Load sprite sheet & animations for any actors with dynamically loaded sprite
+            if (actor->reserve_tiles) {
+                load_sprite(actor->base_tile, actor->sprite.ptr, actor->sprite.bank);
+                load_animations((void *)actor->sprite.ptr, actor->sprite.bank, ANIM_SET_DEFAULT, actor->animations);
+            }
             actor_set_anim_idle(actor);
             actor = actor->next;
+        }
+    }
+
+    // Load projectiles
+    if (projectiles_len  != 0) {
+        projectile_def_t * projectile_def = projectile_defs;
+        MemcpyBanked(projectile_def, scn.projectiles.ptr, sizeof(projectile_def_t) * projectiles_len, scn.projectiles.bank);
+        for (i = projectiles_len; i != 0; i--, projectile_def++) {
+            // resolve and set base_tile for each projectile
+            UBYTE idx = IndexOfFarPtr(scn.sprites.ptr, scn.sprites.bank, sprites_len, &projectile_def->sprite);
+            projectile_def->base_tile = (idx < sprites_len) ? scene_sprites_base_tiles[idx] : 0;
         }
     }
 
