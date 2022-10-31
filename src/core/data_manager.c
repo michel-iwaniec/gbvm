@@ -308,6 +308,11 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
     } else {
         actor_t *actor = actors_active_head;
         while (actor) {
+            // Load sprite sheet & animations for any actors with dynamically loaded sprite
+            if (actor->reserve_tiles) {
+                load_sprite(actor->base_tile, actor->sprite.ptr, actor->sprite.bank);
+                load_animations((void *)actor->sprite.ptr, actor->sprite.bank, ANIM_SET_DEFAULT, actor->animations);
+            }
             actor_set_anim_idle(actor);
             actor = actor->next;
         }
