@@ -1,5 +1,6 @@
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .area _CODE_255
 

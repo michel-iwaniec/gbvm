@@ -1,4 +1,6 @@
 .include "vm.i"
+.include "global.s"
+.include "global.s"
         
 .globl b_wait_frames, _wait_frames
 
@@ -94,17 +96,17 @@ _SCRIPT_2::
 
         ; instead ot this:
 ;        VM_CONTEXT_PREPARE      1, ___bank_KEYS_SCRIPT, _RIGHT_SCRIPT
-;        VM_INPUT_ATTACH         0x01, 1
+;        VM_INPUT_ATTACH         ^/.RIGHT/, 1
 ;        VM_CONTEXT_PREPARE      2, ___bank_KEYS_SCRIPT, _LEFT_SCRIPT
-;        VM_INPUT_ATTACH         0x02, 2
+;        VM_INPUT_ATTACH         ^/.LEFT/, 2
 ;        VM_CONTEXT_PREPARE      3, ___bank_KEYS_SCRIPT, _UP_SCRIPT
-;        VM_INPUT_ATTACH         0x04, 3
+;        VM_INPUT_ATTACH         ^/.UP/, 3
 ;        VM_CONTEXT_PREPARE      4, ___bank_KEYS_SCRIPT, _DOWN_SCRIPT
-;        VM_INPUT_ATTACH         0x08, 4
+;        VM_INPUT_ATTACH         ^/.DOWN/, 4
 
         ; we now able to use this:
         VM_CONTEXT_PREPARE      1, ___bank_KEYS_SCRIPT, _GRID_MOVE
-        VM_INPUT_ATTACH         0x3f, 1         ; cursors, A, B
+        VM_INPUT_ATTACH         ^/(.LEFT | .RIGHT | .UP | .DOWN | .A | .B)/, 1         ; cursors, A, B
 
         VM_ACTOR_ACTIVATE       12
         VM_ACTOR_MOVE_TO        12

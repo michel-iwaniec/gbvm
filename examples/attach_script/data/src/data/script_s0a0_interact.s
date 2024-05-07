@@ -2,6 +2,7 @@
 
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .area _CODE_255
 
@@ -14,7 +15,7 @@ _script_s0a0_interact::
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      4, ___bank_script_input_0, _script_input_0
-        VM_INPUT_ATTACH         16, ^/(4 | .OVERRIDE_DEFAULT)/
+        VM_INPUT_ATTACH         ^/.A/, ^/(4 | .OVERRIDE_DEFAULT)/
 
         ; Stop Script
         VM_STOP

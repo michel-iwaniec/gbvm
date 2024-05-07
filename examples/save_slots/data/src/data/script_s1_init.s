@@ -1,5 +1,6 @@
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .globl b_wait_frames, _wait_frames
 
@@ -20,15 +21,15 @@ _script_s1_init::
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      1, ___bank_script_input_0, _script_input_0
-        VM_INPUT_ATTACH         128, 1
+        VM_INPUT_ATTACH         ^/.START/, 1
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      3, ___bank_script_input_1, _script_input_1
-        VM_INPUT_ATTACH         32, 3
+        VM_INPUT_ATTACH         ^/.B/, 3
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      4, ___bank_script_input_2, _script_input_2
-        VM_INPUT_ATTACH         16, 4
+        VM_INPUT_ATTACH         ^/.A/, 4
 
         ; Text Dialogue
         VM_LOAD_TEXT            0

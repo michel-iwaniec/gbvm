@@ -1,5 +1,6 @@
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .area _CODE_255
 
@@ -18,7 +19,7 @@ _script_s4_init::
         VM_TIMER_SET            1, 2
 
         VM_CONTEXT_PREPARE       1, ___bank_script_s4_input1, _script_s4_input1
-        VM_INPUT_ATTACH          0x40, 1
+        VM_INPUT_ATTACH          ^/.SELECT/, 1
 
         ; Stop Script
         VM_STOP

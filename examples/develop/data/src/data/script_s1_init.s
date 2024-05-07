@@ -2,6 +2,7 @@
 
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .globl b_wait_frames, _wait_frames, _fade_frames_per_step
 
@@ -31,7 +32,7 @@ _script_s1_init::
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      1, ___bank_script_input_1, _script_input_1
-        VM_INPUT_ATTACH         240, ^/(1 | .OVERRIDE_DEFAULT)/
+        VM_INPUT_ATTACH         ^/(.A | .B | .SELECT | .START)/, ^/(1 | .OVERRIDE_DEFAULT)/
 
         ; Wait N Frames
         VM_SET_CONST            .LOCAL_TMP1_WAIT_ARGS, 1
