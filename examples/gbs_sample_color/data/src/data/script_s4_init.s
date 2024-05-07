@@ -21,7 +21,7 @@ _script_s4_init::
         VM_RESERVE              5
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_intro__Data, _track_rulz_intro__Data, .MUSIC_NO_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_intro__Data, _track_rulz_intro__Data, .MUSIC_NO_LOOP
 
         ; Actor Deactivate
         VM_SET_CONST            .LOCAL_ACTOR, 0

@@ -1,5 +1,6 @@
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .globl ___bank_spritesheet_1, _spritesheet_1
 .globl b_wait_frames, _wait_frames
@@ -38,7 +39,7 @@ _script_s2_init::
         VM_FADE_IN              .UI_MODAL
 
         VM_CONTEXT_PREPARE       1, ___bank_script_s2_input1, _script_s2_input1
-        VM_INPUT_ATTACH          0x40, 1
+        VM_INPUT_ATTACH          ^/.SELECT/, 1
 
         ; Emote
         ; VM_SET_CONST            ACTOR, 0
