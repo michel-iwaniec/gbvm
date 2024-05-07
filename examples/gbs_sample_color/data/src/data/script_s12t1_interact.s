@@ -39,7 +39,7 @@ _script_s12t1_interact::
         VM_IF_CONST .EQ         .ARG0, 0, 1$, 1
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_spaceemergency__Data, _track_rulz_spaceemergency__Data, .MUSIC_NO_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_spaceemergency__Data, _track_rulz_spaceemergency__Data, .MUSIC_NO_LOOP
 
         ; Actor Deactivate
         VM_SET_CONST            .LOCAL_ACTOR, 0

@@ -30,7 +30,7 @@ _script_enemy_ship_destroy::
         VM_ACTOR_TERMINATE_UPDATE .LOCAL_ACTOR
 
         ; Sound Play Crash
-        VM_SOUND_PLAY           30, 4, 0x01, 0xF2, 0x13, 0x80, 0x00
+        ;VM_SFX_PLAY           30, 4, 0x01, 0xF2, 0x13, 0x80, 0x00
         ; Actor Set Active
         VM_SET                  .LOCAL_ACTOR, .SCRIPT_ARG_0_ACTOR
 

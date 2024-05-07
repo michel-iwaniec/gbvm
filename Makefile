@@ -1,3 +1,5 @@
+#GBSPACK = $(TOP)../gbspack/gbspack
+GBSPACK = $(TOP)../gbspack/target/release/gbspack
 OBJDIR = obj
 
 EXAMPLES = $(foreach dir,examples,$(wildcard $(dir)/*))

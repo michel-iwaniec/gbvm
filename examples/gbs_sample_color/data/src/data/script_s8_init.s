@@ -22,7 +22,7 @@ _script_s8_init::
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_lightmood__Data, _track_rulz_lightmood__Data, .MUSIC_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_lightmood__Data, _track_rulz_lightmood__Data, .MUSIC_LOOP
 
         ; Player Set Spritesheet
         VM_SET_CONST            .LOCAL_ACTOR, 0

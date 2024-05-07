@@ -1,5 +1,6 @@
 .include "vm.i"
 .include "data/game_globals.i"
+.include "global.s"
 
 .globl b_wait_frames, _wait_frames
 
@@ -22,11 +23,11 @@ _script_s0_init::
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      8, ___bank_script_input_0, _script_input_0
-        VM_INPUT_ATTACH         1, 8
+        VM_INPUT_ATTACH         ^/.RIGHT/, 8
 
         ; Input Script Attach
         VM_CONTEXT_PREPARE      7, ___bank_script_input_1, _script_input_1
-        VM_INPUT_ATTACH         2, 7
+        VM_INPUT_ATTACH         ^/.LEFT/, 7
 
         ; Variable Set To False
         VM_SET_CONST            VAR_CURSOR_INDEX, 0

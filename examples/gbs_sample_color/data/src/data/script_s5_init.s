@@ -38,7 +38,7 @@ _script_s5_init::
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_undergroundcave__Data, _track_rulz_undergroundcave__Data, .MUSIC_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_undergroundcave__Data, _track_rulz_undergroundcave__Data, .MUSIC_LOOP
 
         ; If Variable True
         VM_IF_CONST .GT         VAR_PUSHED_ICE_BLOCK, 0, 3$, 0

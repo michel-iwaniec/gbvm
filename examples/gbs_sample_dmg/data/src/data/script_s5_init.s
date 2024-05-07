@@ -3,6 +3,7 @@
 .include "vm.i"
 .include "data/game_globals.i"
 .include "macro.i"
+.include "global.s"
 
 .globl b_wait_frames, _wait_frames, _fade_frames_per_step, ___bank_scene_outside, _scene_outside
 
@@ -39,7 +40,7 @@ _script_s5_init::
         ; Text Multiple Choice
         VM_LOAD_TEXT            0
         .asciz "\001\001\003\003\002New Game\n\003\003\003Continue"
-        VM_OVERLAY_CLEAR        0, 0, 20, 4, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
+        VM_OVERLAY_CLEAR        0, 0, .DEVICE_SCREEN_WIDTH, 4, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
         VM_OVERLAY_MOVE_TO      0, 14, .OVERLAY_IN_SPEED
         VM_DISPLAY_TEXT
         VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW | .UI_WAIT_TEXT)/
@@ -58,7 +59,7 @@ _script_s5_init::
         ; Text Dialogue
         VM_LOAD_TEXT            0
         .asciz "No Save Data\nFound..."
-        VM_OVERLAY_CLEAR        0, 0, 20, 4, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
+        VM_OVERLAY_CLEAR        0, 0, .DEVICE_SCREEN_WIDTH, 4, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
         VM_OVERLAY_MOVE_TO      0, 14, .OVERLAY_IN_SPEED
         VM_DISPLAY_TEXT
         VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW | .UI_WAIT_TEXT | .UI_WAIT_BTN_A)/

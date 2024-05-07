@@ -21,6 +21,6 @@ _script_enemy_ship_hit_player::
         VM_INVOKE               b_camera_shake_frames, _camera_shake_frames, 0, .LOCAL_TMP0_CAMERA_SHAKE_ARGS
 
         ; Sound Play Crash
-        VM_SOUND_PLAY           30, 4, 0x01, 0xF2, 0x13, 0x80, 0x00
+        ;VM_SOUND_PLAY           30, 4, 0x01, 0xF2, 0x13, 0x80, 0x00
         VM_RESERVE              -2
         VM_RET_FAR

@@ -24,7 +24,7 @@ _script_s14_init::
         VM_ACTOR_DEACTIVATE     .LOCAL_ACTOR
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_lightmood__Data, _track_rulz_lightmood__Data, .MUSIC_NO_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_lightmood__Data, _track_rulz_lightmood__Data, .MUSIC_NO_LOOP
 
         ; Wait N Frames
         VM_SET_CONST            .LOCAL_TMP1_WAIT_ARGS, 1

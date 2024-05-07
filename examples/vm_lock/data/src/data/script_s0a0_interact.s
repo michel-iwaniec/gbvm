@@ -22,7 +22,7 @@ _script_s0a0_interact::
         ; Text Dialogue
         VM_LOAD_TEXT            0
         .asciz "= VM IS LOCKED ======\nGirl in pond should\nstop moving?"
-        VM_OVERLAY_CLEAR        0, 0, 20, 5, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
+        VM_OVERLAY_CLEAR        0, 0, 32, 5, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
         VM_OVERLAY_MOVE_TO      0, 13, .OVERLAY_IN_SPEED
         VM_DISPLAY_TEXT
         VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW | .UI_WAIT_TEXT | .UI_WAIT_BTN_A)/
@@ -50,7 +50,7 @@ _script_s0a0_interact::
         ; Text Dialogue
         VM_LOAD_TEXT            0
         .asciz "= VM ABOUT TO UNLOCK\nGirl movement should\nresume"
-        VM_OVERLAY_CLEAR        0, 0, 20, 5, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
+        VM_OVERLAY_CLEAR        0, 0, 32, 5, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
         VM_OVERLAY_MOVE_TO      0, 13, .OVERLAY_IN_SPEED
         VM_DISPLAY_TEXT
         VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW | .UI_WAIT_TEXT | .UI_WAIT_BTN_A)/

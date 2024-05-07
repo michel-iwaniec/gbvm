@@ -102,7 +102,7 @@ _script_s6_init::
         VM_ACTOR_DEACTIVATE     .LOCAL_ACTOR
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_pause_underground__Data, _track_rulz_pause_underground__Data, .MUSIC_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_pause_underground__Data, _track_rulz_pause_underground__Data, .MUSIC_LOOP
 
         ; Wait N Frames
         VM_SET_CONST            .LOCAL_TMP1_WAIT_ARGS, 1

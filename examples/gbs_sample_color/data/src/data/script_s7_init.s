@@ -59,7 +59,7 @@ _script_s7_init::
         VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
 
         ; Music Play
-        VM_MUSIC_PLAY           ___bank_track_rulz_fastpacespeedrace__Data, _track_rulz_fastpacespeedrace__Data, .MUSIC_LOOP
+        ; NES TODO: VM_MUSIC_PLAY           ___bank_track_rulz_fastpacespeedrace__Data, _track_rulz_fastpacespeedrace__Data, .MUSIC_LOOP
 
         ; Actor Set Active
         VM_SET_CONST            .LOCAL_ACTOR, 0
