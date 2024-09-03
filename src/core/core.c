@@ -24,7 +24,6 @@
 #include "vm_exceptions.h"
 #include "states_caller.h"
 #include "load_save.h"
-#include "sio.h"
 #ifdef SGB
     #include "sgb_border.h"
     #include "data/border.h"
@@ -41,7 +40,6 @@ extern void core_reset_hook(void);
 
 void core_reset(void) BANKED {
     // cleanup core stuff
-    SIO_init();
     input_init();
     load_init();
     music_init_driver();
@@ -202,7 +200,7 @@ void core_run(void) BANKED {
 
     data_init();
 
-    display_off();
+    DISPLAY_OFF;
     palette_init();
 
     LCDC_REG = LCDCF_OFF | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON;
@@ -222,10 +220,10 @@ void core_run(void) BANKED {
         LYC_REG = 0u;
 
         add_VBL(VBL_isr);
+        add_VBL(music_play_isr);
         STAT_REG |= STATF_LYC; 
 
-        music_setup_timer();
-        IE_REG |= (TIM_IFLAG | LCD_IFLAG | SIO_IFLAG);
+        IE_REG |= LCD_IFLAG;
     }
     DISPLAY_ON;
 

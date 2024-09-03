@@ -21,7 +21,6 @@ uint8_t music_mute_mask;
 uint8_t music_effective_mute;
 const TRACK_T * music_next_track;
 const TRACK_T * music_current_track;
-uint8_t music_play_isr_counter;
 uint8_t music_play_isr_pause;
 uint8_t music_global_mute_mask;
 uint8_t music_sfx_priority;
@@ -37,7 +36,6 @@ void hUGETrackerRoutine(unsigned char tick, unsigned int param) NONBANKED {
 
 void music_init_driver(void) BANKED {
     music_init();
-    music_play_isr_counter = 0;
     music_play_isr_pause = FALSE;
     driver_set_mute_mask(music_effective_mute = music_global_mute_mask = music_mute_mask = MUTE_MASK_NONE);
     music_sfx_priority = MUSIC_SFX_PRIORITY_MINIMAL;
@@ -99,7 +97,6 @@ void music_play_isr(void) NONBANKED {
     }
     if (music_play_isr_pause) return;
     if (music_current_track_bank == MUSIC_STOP_BANK) return;
-    if (++music_play_isr_counter & 3) return;
     uint8_t save_bank = CURRENT_BANK;
     SWITCH_ROM(music_current_track_bank);
     if (music_next_track) {
