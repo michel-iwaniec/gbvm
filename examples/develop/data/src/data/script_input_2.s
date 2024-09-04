@@ -12,6 +12,7 @@ ___bank_script_input_2 = 255
 _script_input_2::
 
         VM_RANDOMIZE
+        VM_MUSIC_STOP
 
 ; -- overlay cut scanline example --------------------
 
