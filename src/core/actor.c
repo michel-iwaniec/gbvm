@@ -108,7 +108,7 @@ void actors_update(void) NONBANKED {
 
     static bool window_hide_actors;
 #ifdef CGB
-    window_hide_actors = (!_is_CGB) && ((overlay_priority & S_PRIORITY) == 0) && (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
+    window_hide_actors = ((!_is_CGB) || ((overlay_priority & S_PRIORITY) == 0)) && (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #else
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif

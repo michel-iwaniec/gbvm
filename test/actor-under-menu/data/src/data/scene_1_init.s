@@ -22,6 +22,7 @@ _scene_1_init::
         VM_FADE_IN              1
 
         ; Text Menu
+        VM_SET_CONST_UINT8      _overlay_priority, 0
         VM_OVERLAY_CLEAR        0, 0, 10, 4, .UI_COLOR_WHITE, ^/(.UI_AUTO_SCROLL | .UI_DRAW_FRAME)/
         VM_OVERLAY_MOVE_TO      10, 18, .OVERLAY_SPEED_INSTANT
         VM_OVERLAY_MOVE_TO      10, 14, 3
