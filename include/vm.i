@@ -1550,11 +1550,11 @@ OP_VM_LOAD_PALETTE       = 0x7C
         .dw #((COL1 & 0x03) | ((COL2 & 0x03) << 2) | ((COL3 & 0x03) << 4) | ((COL4 & 0x03) << 6))
         .dw 0,0,0
 .endm
-.macro .CGB_PAL R1,G1,B1 R2,G2,B2 R3,G3,B3 R4,G4,B4
-        .dw #((R1 & 0x1F) | ((G1 & 0x1F) << 5) | ((B1 & 0x1F) << 10))
-        .dw #((R2 & 0x1F) | ((G2 & 0x1F) << 5) | ((B2 & 0x1F) << 10))
-        .dw #((R3 & 0x1F) | ((G3 & 0x1F) << 5) | ((B3 & 0x1F) << 10))
-        .dw #((R4 & 0x1F) | ((G4 & 0x1F) << 5) | ((B4 & 0x1F) << 10))
+.macro .CGB_PAL C0, C1, C2, C3
+        .db #C0
+        .db #C1
+        .db #C2
+        .db #C3
 .endm
 
 .macro VM_LOAD_PALETTE MASK, OPTIONS
