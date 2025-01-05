@@ -506,37 +506,39 @@ _vm_rpn_asm::
 
 ; .DIV
 .vm_rpn_op_DIV:
+    stx *REGTEMP
     pha
     lda .vm_rpn_B_lo,x
-    sta	__divsint_PARM_2
+    sta	*__divsint_PARM_2
     lda .vm_rpn_B_hi,x
-    sta	(__divsint_PARM_2 + 1)
-    pla
+    sta	*(__divsint_PARM_2 + 1)
     tya
-    stx *REGTEMP
     tax
+    pla
     jsr	__divsint
-    sta .vm_rpn_A_lo,x
-    tya
+    stx *REGTEMP+1
     ldx *REGTEMP
+    sta .vm_rpn_A_lo,x
+    lda *REGTEMP+1
     sta .vm_rpn_A_hi,x
     jmp .vm_rpn_op_next_dec_stack_ptr
 
 ; .MOD
 .vm_rpn_op_MOD:
+    stx *REGTEMP
     pha
     lda .vm_rpn_B_lo,x
-    sta	__modsint_PARM_2
+    sta	*__modsint_PARM_2
     lda .vm_rpn_B_hi,x
-    sta	(__modsint_PARM_2 + 1)
-    pla
+    sta	*(__modsint_PARM_2 + 1)
     tya
-    stx *REGTEMP
     tax
+    pla
     jsr	__modsint
-    sta .vm_rpn_A_lo,x
-    tya
+    stx *REGTEMP+1
     ldx *REGTEMP
+    sta .vm_rpn_A_lo,x
+    lda *REGTEMP+1
     sta .vm_rpn_A_hi,x
     jmp .vm_rpn_op_next_dec_stack_ptr
 
