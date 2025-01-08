@@ -77,6 +77,25 @@ UBYTE FindBlankTile(const tileset_t* tiles, UBYTE bank)
     return blank_idx;
 }
 
+static volatile uint8_t* CFG_REG = (volatile uint8_t*)0x8000;
+
+// gbdk-nes: Reset UI attributes to palette 3
+const uint8_t data_ff[16] = {
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+};
+void clear_ui_attributes(void) BANKED REENTRANT {
+    for(uint8_t i = 0; i < 4; i++)
+    {
+        *CFG_REG = i;
+        for(uint8_t j = 252; j != 0; j++)
+        {
+            set_bkg_data(j, 1, data_ff);
+        }
+        *CFG_REG = 0;
+    }
+}
+
 void load_bkg_tileset(const tileset_t* tiles, UBYTE bank) BANKED REENTRANT {
     if ((!bank) || (!tiles)) return;
 
@@ -110,8 +129,24 @@ void load_bkg_tileset(const tileset_t* tiles, UBYTE bank) BANKED REENTRANT {
     SetBankedBkgData(128, 128, data, bank);
     n_tiles -= 128; data += 128 * 16;
 
-    // if more than 256 - then it's a 360-tile logo, load rest to sprite area
-    if ((UBYTE)n_tiles) SetBankedSpriteData(0, n_tiles, data, bank);
+    // if more than 256 - then it's a logo image, load rest to CHR banks 1..3
+    for(uint8_t i = 1; i < 4; i++)
+    { 
+        *CFG_REG = i;
+        if(n_tiles >= 256)
+        {
+            SetBankedBkgData(0, 128, data, bank);
+            data += 128 * 16;
+            SetBankedBkgData(128, 128, data, bank);
+            data += 128 * 16;
+            n_tiles -= 256;
+        }
+        else if(n_tiles >= 0)
+        {
+            SetBankedBkgData(0, n_tiles, data, bank);
+        }
+        *CFG_REG = 0;
+    }
 }
 
 void load_background(const background_t* background, UBYTE bank) BANKED REENTRANT {
@@ -157,6 +192,9 @@ void load_background(const background_t* background, UBYTE bank) BANKED REENTRAN
         // image smaller than screen height - just set to SCREENHEIGHT.
         scroll_y_max = SCREENHEIGHT;
     }
+
+    clear_ui_attributes();
+
     load_bkg_tileset(bkg.tileset.ptr, bkg.tileset.bank);
 #ifdef CGB
     if ((_is_CGB) && (bkg.cgb_tileset.ptr)) {

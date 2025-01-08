@@ -54,6 +54,18 @@ void remove_LCD_ISRs(void) BANKED {
     }
 }
 
+void isr_show_overlay(void) NONBANKED {
+    // Write BKG palette 7 (UI) BkgPalette[7]
+    _add_palette_rewrite(BkgPalette[7].c0, BkgPalette[7].c1, BkgPalette[7].c2, BkgPalette[7].c3);
+    // Show window and hide sprites
+    _vram_transfer_mapper_bits |= (CFG_SWP_SPR_4S | CFG_CHR_A14 | CFG_CHR_A13 | CFG_CHR_A12);
+    _lcd_scanline = 0;
+    move_bkg(0, 0);
+    HIDE_SPRITES;
+    // Show leftmost BG column unconditionally
+    shadow_PPUMASK |= PPUMASK_SHOW_BG_LC;
+}
+
 void simple_LCD_isr(void) NONBANKED {
     bool is_overlay_active = win_pos_y < DEVICE_SCREEN_PX_HEIGHT;
     if(is_overlay_active) {
@@ -63,27 +75,50 @@ void simple_LCD_isr(void) NONBANKED {
         }
         else if(_lcd_scanline == win_pos_y-2 || win_pos_y < 3)
         {
-            // Change BKG palette 7 (UI) BkgPalette[7]
-            _add_palette_rewrite(BkgPalette[7].c0, BkgPalette[7].c1, BkgPalette[7].c2, BkgPalette[7].c3);
-            //_add_palette_rewrite(0x06, 0x16, 0x26, 0x36); // Debugtest: All-red sub-palette
-            
-            // Show window and hide sprites
-            _vram_transfer_mapper_bits |= (CFG_SWP_SPR_4S | CFG_CHR_A14 | CFG_CHR_A13 | CFG_CHR_A12);
-            _lcd_scanline = 0;
-            move_bkg(0, 0);
-            HIDE_SPRITES;
-            // Show leftmost BG column unconditionally
-            shadow_PPUMASK |= PPUMASK_SHOW_BG_LC;
+            isr_show_overlay();
+            return;
         }
     }
 }
 
+uint8_t next_is_win;
+
 void fullscreen_LCD_isr(void) NONBANKED {
-    if (_lcd_scanline == LYC_SYNC_VALUE) {
-        move_bkg(draw_scroll_x_adjusted, draw_scroll_y);
-        _lcd_scanline = (9 * 8) - 1;
-    } else {
-        _lcd_scanline = LYC_SYNC_VALUE;
+    bool is_overlay_active = win_pos_y < DEVICE_SCREEN_PX_HEIGHT-2;
+    if(is_overlay_active) {
+        _vram_transfer_mapper_bits &= 0xF8;
+        if(next_is_win || win_pos_y < 3)
+        {
+            isr_show_overlay();
+            return;
+        }
+        else
+        {
+            _vram_transfer_mapper_bits |= (_lcd_scanline >> 6);
+            _lcd_scanline &= 0xC0;
+            _lcd_scanline += 64;
+            if(_lcd_scanline >= win_pos_y || _lcd_scanline == 0)
+            {
+                next_is_win = 1;
+                // Work-around for bug with overlay palette-rewrite +1 scanline after regular scroll split
+                uint8_t _lcd_scanline_previous = _lcd_scanline - 64;
+                if(_lcd_scanline_previous == (UBYTE)(win_pos_y-1))
+                {
+                    // Push palette rewrite one scanline down to occur 2 scanlines down instead
+                    _lcd_scanline = win_pos_y + 1;
+                }
+                else
+                {
+                    _lcd_scanline = win_pos_y;
+                }
+            }
+        }
+    }
+    else
+    {
+        _vram_transfer_mapper_bits &= 0xF8;
+        _vram_transfer_mapper_bits |= (_lcd_scanline >> 6);
+        _lcd_scanline += 64;
     }
 }
 
@@ -106,4 +141,5 @@ void VBL_isr(void) NONBANKED {
     // Hide leftmost BG/SPR column depending on scene setting
     shadow_PPUMASK &= ~(PPUMASK_SHOW_BG_LC | PPUMASK_SHOW_SPR_LC);
     shadow_PPUMASK |= scene_SHOW_LC;
+    next_is_win = 0;
 }
