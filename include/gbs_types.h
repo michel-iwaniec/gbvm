@@ -64,6 +64,14 @@ typedef struct actor_t
     // Linked list
     struct actor_t *next;
     struct actor_t *prev;
+    
+    // use padding space for collision optimization: Pre-shift bounds to avoid shifts by 4 in collision
+    bounding_box_16_t bounds_x16;
+    uint8_t padding[4];
+/*
+    // pad with 12 bytes to make structure 64-byte, to avoid __muluchar call when indexing
+    uint8_t padding[12];
+*/
 } actor_t;
 
 #define TRIGGER_HAS_ENTER_SCRIPT    1
@@ -129,6 +137,7 @@ typedef struct projectile_def_t
     uint16_t initial_offset;
     collision_group_e collision_group;
     uint8_t collision_mask;
+    bounding_box_16_t bounds_x16;
 } projectile_def_t;
 
 typedef struct projectile_t

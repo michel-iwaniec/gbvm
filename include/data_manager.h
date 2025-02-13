@@ -15,6 +15,8 @@ extern UBYTE image_tile_width;
 extern UBYTE image_tile_height;
 extern UINT16 image_width;
 extern UINT16 image_height;
+extern UINT16 image_width_x16;
+extern UINT16 image_height_x16;
 extern scene_type_e scene_type;
 extern UBYTE actors_len;
 extern UBYTE sprites_len;

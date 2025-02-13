@@ -35,6 +35,8 @@ UBYTE image_tile_width;
 UBYTE image_tile_height;
 UINT16 image_width;
 UINT16 image_height;
+UINT16 image_width_x16;
+UINT16 image_height_x16;
 UBYTE sprites_len;
 UBYTE actors_len;
 UBYTE projectiles_len;
@@ -105,8 +107,10 @@ void load_background(const background_t* background, UBYTE bank) BANKED {
     image_tile_width = bkg.width;
     image_tile_height = bkg.height;
     image_width = image_tile_width * 8;
+	image_width_x16 = image_width * 16;
     scroll_x_max = image_width - ((UINT16)SCREENWIDTH);
     image_height = image_tile_height * 8;
+	image_height_x16 = image_height * 16;
     scroll_y_max = image_height - ((UINT16)SCREENHEIGHT);
 
     load_bkg_tileset(bkg.tileset.ptr, bkg.tileset.bank);
@@ -262,6 +266,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
 
         // Add player to inactive, then activate
         PLAYER.active = FALSE;
+        actor_update_bounds_x16(&PLAYER);
         actors_active_tail = &PLAYER;
         DL_PUSH_HEAD(actors_inactive_head, actors_active_tail);
         activate_actor(&PLAYER);
@@ -271,6 +276,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
             actor_t * actor = actors + 1;
             MemcpyBanked(actor, scn.actors.ptr, sizeof(actor_t) * (actors_len - 1), scn.actors.bank);
             for (i = actors_len - 1; i != 0; i--, actor++) {
+                actor_update_bounds_x16(actor);
                 if (actor->reserve_tiles) {
                     // exclusive sprites allocated separately to avoid overwriting if modified
                     actor->base_tile = allocated_sprite_tiles;
@@ -314,6 +320,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         projectile_def_t * projectile_def = projectile_defs;
         MemcpyBanked(projectile_def, scn.projectiles.ptr, sizeof(projectile_def_t) * projectiles_len, scn.projectiles.bank);
         for (i = projectiles_len; i != 0; i--, projectile_def++) {
+            projectile_def_update_bounds_x16(projectile_def);
             // resolve and set base_tile for each projectile
             UBYTE idx = IndexOfFarPtr(scn.sprites.ptr, scn.sprites.bank, sprites_len, &projectile_def->sprite);
             projectile_def->base_tile = (idx < sprites_len) ? scene_sprites_base_tiles[idx] : 0;

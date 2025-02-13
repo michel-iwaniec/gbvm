@@ -24,6 +24,30 @@ void projectiles_init(void) BANKED {
     }
 }
 
+// Optimized versions for projectile_update
+inline UBYTE bb_intersects_opt_p(bounding_box_16_t *bb_a, uint16_t a_x, uint16_t a_y, bounding_box_16_t *bb_b, upoint16_t *offset_b) {
+    if ((offset_b->x + bb_b->left   > a_x + bb_a->right) ||
+        (offset_b->x + bb_b->right  < a_x + bb_a->left)) return FALSE;
+    if ((offset_b->y + bb_b->top    > a_y + bb_a->bottom) ||
+        (offset_b->y + bb_b->bottom < a_y + bb_a->top)) return FALSE;
+    return TRUE;
+}
+
+inline actor_t *actor_overlapping_bb_opt_p(bounding_box_16_t *bb, uint16_t pos_x, uint16_t pos_y) {
+    actor_t *actor = &PLAYER;
+
+    while (actor) {
+        if (bb_intersects_opt_p(bb, pos_x, pos_y, &actor->bounds_x16, &actor->pos)) {
+            return actor;
+        }
+
+        actor = actor->prev;
+    }
+
+    return NULL;
+}
+
+
 static UBYTE _save_bank;
 static projectile_t *projectile;
 static projectile_t *prev_projectile;

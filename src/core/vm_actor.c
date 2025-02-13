@@ -50,7 +50,144 @@ typedef struct gbs_farptr_t {
     const void * DATA;
 } gbs_farptr_t;
 
-void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+// Optimized versions for vm_actor_move_to
+inline UBYTE bb_intersects_opt(uint16_t a_l, uint16_t a_r, uint16_t a_t, uint16_t a_b, uint16_t a_x, uint16_t a_y, bounding_box_16_t *bb_b, upoint16_t *offset_b) {
+    if ((offset_b->x + bb_b->left   > a_r) ||
+        (offset_b->x + bb_b->right  < a_l)) return FALSE;
+    if ((offset_b->y + bb_b->top    > a_b) ||
+        (offset_b->y + bb_b->bottom < a_t)) return FALSE;
+    return TRUE;
+}
+
+inline actor_t *actor_overlapping_bb_opt(bounding_box_16_t *bb, uint16_t pos_x, uint16_t pos_y, actor_t *ignore) {
+    actor_t *actor = &PLAYER;
+
+    uint16_t r = pos_x + bb->right;
+    uint16_t l = pos_x + bb->left;
+    uint16_t b = pos_y + bb->bottom;
+    uint16_t t = pos_y + bb->top;
+
+    while (actor) {
+        if (actor == ignore || !actor->collision_enabled) {
+            actor = actor->prev;
+            continue;
+        };
+
+        if (bb_intersects_opt(l, r, t, b, pos_x, pos_y, &actor->bounds_x16, &actor->pos)) {
+            return actor;
+        }
+
+        actor = actor->prev;
+    }
+
+    return NULL;
+}
+
+//
+static UBYTE check_collision_LEFT_tc(UBYTE tx1, UBYTE tx2, UBYTE ty1, UBYTE ty2) {
+    UBYTE tt;
+    while (tx1 != tx2) {
+        tt = ty1;
+        while (tt != ty2) {
+            if (tile_at(tx1, tt) & COLLISION_RIGHT) {
+                //return ((tx1 + 1) << 7) - bounds_x16->left;
+                return tx1;
+            }
+            tt++;
+        }
+        tx1--;
+    }
+    return 255;
+}
+
+inline UWORD check_collision_LEFT(UWORD start_x, UWORD start_y, bounding_box_16_t *bounds_x16, UWORD end_pos) {
+    UBYTE tx1;
+    tx1 = check_collision_LEFT_tc(  (start_x + bounds_x16->left) >> 7,
+                                    ((end_pos + bounds_x16->left) >> 7) - 1,
+                                    ((start_y + bounds_x16->top) >> 7),
+                                    ((start_y + bounds_x16->bottom) >> 7) + 1);
+    return tx1 == 255 ? end_pos : ((tx1 + 1) << 7) - bounds_x16->left;
+}
+
+//
+static UBYTE check_collision_RIGHT_tc(UBYTE tx1, UBYTE tx2, UBYTE ty1, UBYTE ty2) {
+    UBYTE  tt;
+    while (tx1 != tx2) {
+        tt = ty1;
+        while (tt != ty2) {
+            if (tile_at(tx1, tt) & COLLISION_LEFT) {
+                //return (tx1 << 7) - (bounds_x16->right + 16);
+                return tx1;
+            }
+            tt++;
+        }
+        tx1++;
+    }
+    return 255;
+}
+
+inline UWORD check_collision_RIGHT(UWORD start_x, UWORD start_y, bounding_box_16_t *bounds_x16, UWORD end_pos) {
+    UBYTE tx1;
+    tx1 = check_collision_RIGHT_tc( (start_x + bounds_x16->right) >> 7,
+                                    ((end_pos + bounds_x16->right) >> 7) + 1,
+                                    ((start_y + bounds_x16->top) >> 7),
+                                    ((start_y + bounds_x16->bottom) >> 7) + 1);
+    return tx1 == 255 ? end_pos : (tx1 << 7) - (bounds_x16->right + 16);
+}
+
+//
+static UWORD check_collision_UP_tc(UBYTE tx1, UBYTE tx2, UBYTE ty1, UBYTE ty2) {
+    UBYTE tt;
+    while (ty1 != ty2) {
+        tt = tx1;
+        while (tt != tx2) {
+            if (tile_at(tt, ty1) & COLLISION_BOTTOM) {
+                //return ((ty1 + 1) << 7) - (bounds_x16->top);
+                return ty1;
+            }
+            tt++;
+        }
+        ty1--;
+    }
+    return 255;
+}
+
+inline UWORD check_collision_UP(UWORD start_x, UWORD start_y, bounding_box_16_t *bounds_x16, UWORD end_pos) {
+    UBYTE ty1;
+    ty1 = check_collision_UP_tc(    ((start_x + bounds_x16->left) >> 7),
+                                    ((start_x + bounds_x16->right) >> 7) + 1,
+                                    ((start_y + bounds_x16->top) >> 7),
+                                    ((end_pos + bounds_x16->top) >> 7) - 1);
+    return ty1 == 255 ? end_pos : ((ty1 + 1) << 7) - (bounds_x16->top);
+}
+
+//
+static UWORD check_collision_DOWN_tc(UBYTE tx1, UBYTE tx2, UBYTE ty1, UBYTE ty2) {
+    UBYTE tt;
+    while (ty1 != ty2) {
+        tt = tx1;
+        while (tt != tx2) {
+            if (tile_at(tt, ty1) & COLLISION_TOP) {
+                //return ((ty1) << 7) - (bounds_x16->bottom + 16);
+                return ty1;
+            }
+            tt++;
+        }
+        ty1++;
+    }
+    return 255;
+}
+
+inline UWORD check_collision_DOWN(UWORD start_x, UWORD start_y, bounding_box_16_t *bounds_x16, UWORD end_pos) {
+    UBYTE ty1;
+    ty1 = check_collision_DOWN_tc(  ((start_x + bounds_x16->left) >> 7),
+                                    ((start_x + bounds_x16->right) >> 7) + 1,
+                                    ((start_y + bounds_x16->bottom) >> 7),
+                                    ((end_pos + bounds_x16->bottom) >> 7) + 1);
+    return ty1 == 255 ? end_pos : ((ty1) << 7) - (bounds_x16->bottom + 16);
+}
+
+static void vm_actor_move_to_impl(SCRIPT_CTX * THIS, INT16 idx) {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
 
@@ -84,23 +221,23 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
                     UBYTE check_dir = (actor->pos.x > params->X) ? CHECK_DIR_LEFT : CHECK_DIR_RIGHT;
-                    params->X = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds, params->X, check_dir);
+                    params->X = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds_x16, params->X, check_dir);
                 }
                 // Check for vertical collision
                 if (actor->pos.y != params->Y) {
                     UBYTE check_dir = (actor->pos.y > params->Y) ? CHECK_DIR_UP : CHECK_DIR_DOWN;
-                    params->Y = check_collision_in_direction(params->X, actor->pos.y, &actor->bounds, params->Y, check_dir);
+                    params->Y = check_collision_in_direction(params->X, actor->pos.y, &actor->bounds_x16, params->Y, check_dir);
                 }
             } else {
                 // Check for vertical collision
                 if (actor->pos.y != params->Y) {
                     UBYTE check_dir = (actor->pos.y > params->Y) ? CHECK_DIR_UP : CHECK_DIR_DOWN;
-                    params->Y = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds, params->Y, check_dir);
+                    params->Y = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds_x16, params->Y, check_dir);
                 }
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
                     UBYTE check_dir = (actor->pos.x > params->X) ? CHECK_DIR_LEFT : CHECK_DIR_RIGHT;
-                    params->X = check_collision_in_direction(actor->pos.x, params->Y, &actor->bounds, params->X, check_dir);
+                    params->X = check_collision_in_direction(actor->pos.x, params->Y, &actor->bounds_x16, params->X, check_dir);
                 }
             }
         }
@@ -154,7 +291,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb_opt(&actor->bounds_x16, &actor->pos, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
             THIS->flags = 0;
             actor_set_anim_idle(actor);
@@ -188,7 +325,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb_opt(&actor->bounds_x16, &actor->pos, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
             THIS->flags = 0;
             actor_set_anim_idle(actor);
@@ -356,6 +493,8 @@ void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx, BYTE left, BYTE right, BY
     actor->bounds.right = right;
     actor->bounds.top = top;
     actor->bounds.bottom = bottom;
+    //
+    actor_update_bounds_x16(actor);
 }
 
 void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) OLDCALL BANKED {
@@ -366,6 +505,7 @@ void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_ba
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
+    actor_update_bounds_x16(actor);
     actor_reset_anim(actor);
 }
 
@@ -429,6 +569,7 @@ void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) 
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
+    actor_update_bounds_x16(actor);
     actor_reset_anim(actor);
 }
 

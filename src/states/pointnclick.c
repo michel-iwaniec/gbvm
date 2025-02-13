@@ -18,10 +18,10 @@
 UBYTE last_hit_trigger = MAX_TRIGGERS;
 
 void pointnclick_init(void) BANKED {
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = POINT_N_CLICK_CAMERA_DEADZONE;
-    camera_deadzone_y = POINT_N_CLICK_CAMERA_DEADZONE;
+    camera_offset_x_x16 = 0;
+    camera_offset_y_x16 = 0;
+    camera_deadzone_x_x16 = POINT_N_CLICK_CAMERA_DEADZONE << 4;
+    camera_deadzone_y_x16 = POINT_N_CLICK_CAMERA_DEADZONE << 4;
     PLAYER.dir = DIR_RIGHT;
     actor_set_anim(&PLAYER, ANIM_CURSOR);
 }
@@ -65,21 +65,21 @@ void pointnclick_update(void) BANKED {
     if (player_moving) {
         point_translate_angle(&(PLAYER.pos), angle, PLAYER.move_speed);
         // Clamp X
-        if ((PLAYER.pos.x >> 4) - PLAYER.bounds.left > image_width) {
-            PLAYER.pos.x = (PLAYER.bounds.left << 4);
-        } else if ((PLAYER.pos.x >> 4) + PLAYER.bounds.right > image_width) {
-            PLAYER.pos.x = (image_width - PLAYER.bounds.right) << 4;
+        if (PLAYER.pos.x - PLAYER.bounds_x16.left > image_width_x16) {
+            PLAYER.pos.x = PLAYER.bounds_x16.left;
+        } else if (PLAYER.pos.x + PLAYER.bounds_x16.right > image_width_x16) {
+            PLAYER.pos.x = image_width_x16 - PLAYER.bounds_x16.right;
         }
         // Clamp Y
-        if ((PLAYER.pos.y >> 4) + PLAYER.bounds.top > image_height) {
-            PLAYER.pos.y = -(PLAYER.bounds.top << 4);
-        } else if ((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom > image_height) {
-            PLAYER.pos.y = (image_height - PLAYER.bounds.bottom) << 4;
+        if (PLAYER.pos.y + PLAYER.bounds_x16.top > image_height_x16) {
+            PLAYER.pos.y = -PLAYER.bounds_x16.top;
+        } else if (PLAYER.pos.y + PLAYER.bounds_x16.bottom > image_height_x16) {
+            PLAYER.pos.y = image_height_x16 - PLAYER.bounds_x16.bottom;
         }             
     }
 
     // Check for trigger collisions
-    hit_trigger = trigger_at_intersection(&PLAYER.bounds, &PLAYER.pos);
+    hit_trigger = trigger_at_intersection(&PLAYER.bounds_x16, &PLAYER.pos);
 
     // Check for actor collisions
     hit_actor = actor_overlapping_player(FALSE);

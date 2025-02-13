@@ -263,8 +263,8 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     while (actor) {
         UBYTE tx_left   = actor->pos.x >> 7;
         UBYTE ty_bottom = actor->pos.y >> 7;
-        UBYTE tx_right  = ((actor->pos.x >> 4) + (actor->bounds.right)) >> 3;
-        UBYTE ty_top    = ((actor->pos.y >> 4) + (actor->bounds.top)) >> 3;
+        UBYTE tx_right  = (actor->pos.x + actor->bounds_x16.right) >> 7;
+        UBYTE ty_top    = (actor->pos.y + actor->bounds_x16.top) >> 7;
         if (tx_left <= x && tx_right >= x && ty_top <= (y + SCREEN_TILE_REFRES_H) && ty_bottom >= y) {
             actor_t * next = actor->next;
             activate_actor(actor);
@@ -324,7 +324,7 @@ actor_t *actor_in_front_of_player(UBYTE grid_size, UBYTE inc_noclip) BANKED {
     offset.x = PLAYER.pos.x;
     offset.y = PLAYER.pos.y;
     point_translate_dir_word(&offset, PLAYER.dir, grid_size << 4);
-    return actor_overlapping_bb(&PLAYER.bounds, &offset, &PLAYER, inc_noclip);
+    return actor_overlapping_bb(&PLAYER.bounds_x16, &offset, &PLAYER, inc_noclip);
 }
 
 actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED {
@@ -336,7 +336,7 @@ actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED {
             continue;
         };
 
-        if (bb_intersects(&PLAYER.bounds, &PLAYER.pos, &actor->bounds, &actor->pos)) {
+        if (bb_intersects(&PLAYER.bounds_x16, &PLAYER.pos, &actor->bounds_x16, &actor->pos)) {
             return actor;
         }
 
@@ -346,7 +346,7 @@ actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED {
     return NULL;
 }
 
-actor_t *actor_overlapping_bb(bounding_box_t *bb, point16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED {
+actor_t *actor_overlapping_bb(bounding_box_16_t *bb_x16, upoint16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED {
     actor_t *actor = &PLAYER;
 
     while (actor) {
@@ -355,7 +355,7 @@ actor_t *actor_overlapping_bb(bounding_box_t *bb, point16_t *offset, actor_t *ig
             continue;
         };
 
-        if (bb_intersects(bb, offset, &actor->bounds, &actor->pos)) {
+        if (bb_intersects(bb_x16, offset, &actor->bounds_x16, &actor->pos)) {
             return actor;
         }
 
@@ -387,7 +387,9 @@ void actors_handle_player_collision(void) BANKED {
     player_collision_actor = NULL;
 }
 
-UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t *bounds, UWORD end_pos, col_check_dir_e check_dir) BANKED {
+// moved to vm_actor.c
+/*
+UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t *bounds, UWORD end_pos, col_check_dir_e check_dir) BANKED REENTRANT {
     WORD tx1, ty1, tx2, ty2, tt;
     switch (check_dir) {
         case CHECK_DIR_LEFT:  // Check left
@@ -456,4 +458,13 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             return end_pos;
     }
     return end_pos;
+}
+*/
+
+void actor_update_bounds_x16(actor_t *actor) NONBANKED
+{
+    actor->bounds_x16.left = actor->bounds.left << 4;
+    actor->bounds_x16.right = actor->bounds.right << 4;
+    actor->bounds_x16.top = actor->bounds.top << 4;
+    actor->bounds_x16.bottom = actor->bounds.bottom << 4;
 }

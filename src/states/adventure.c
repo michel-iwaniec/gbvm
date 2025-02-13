@@ -21,10 +21,10 @@
 
 void adventure_init(void) BANKED {
     // Set camera to follow player
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = ADVENTURE_CAMERA_DEADZONE;
-    camera_deadzone_y = ADVENTURE_CAMERA_DEADZONE;
+    camera_offset_x_x16 = 0;
+    camera_offset_y_x16 = 0;
+    camera_deadzone_x_x16 = ADVENTURE_CAMERA_DEADZONE << 4;
+    camera_deadzone_y_x16 = ADVENTURE_CAMERA_DEADZONE << 4;
 }
 
 void adventure_update(void) BANKED {
@@ -78,24 +78,24 @@ void adventure_update(void) BANKED {
         point_translate_angle(&new_pos, angle, PLAYER.move_speed);
 
         // Step X
-        tile_start = (((PLAYER.pos.y >> 4) + PLAYER.bounds.top)    >> 3);
-        tile_end   = (((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom) >> 3) + 1;
+        tile_start = ((PLAYER.pos.y + PLAYER.bounds_x16.top)    >> 7);
+        tile_end   = ((PLAYER.pos.y + PLAYER.bounds_x16.bottom) >> 7) + 1;
         if (angle < ANGLE_180DEG) {
-            UBYTE tile_x = ((new_pos.x >> 4) + PLAYER.bounds.right) >> 3;
+            UBYTE tile_x = (new_pos.x + PLAYER.bounds_x16.right) >> 7;
             while (tile_start != tile_end) {
 
                 if (tile_at(tile_x, tile_start) & COLLISION_LEFT) {
-                    new_pos.x = (((tile_x << 3) - PLAYER.bounds.right) << 4) - 1;
+                    new_pos.x = ((tile_x << 7) - PLAYER.bounds_x16.right) - 1;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.x = MIN((image_width - PLAYER.bounds.right - 1) << 4, new_pos.x);
+            PLAYER.pos.x = MIN((image_width_x16 - PLAYER.bounds_x16.right - (1 << 4)), new_pos.x);
         } else {
-            UBYTE tile_x = ((new_pos.x >> 4) + PLAYER.bounds.left) >> 3;
+            UBYTE tile_x = (new_pos.x + PLAYER.bounds_x16.left) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_x, tile_start) & COLLISION_RIGHT) {
-                    new_pos.x = ((((tile_x + 1) << 3) - PLAYER.bounds.left) << 4) + 1;
+                    new_pos.x = (((tile_x + 1) << 7) - PLAYER.bounds_x16.left) + 1;
                     break;
                 }
                 tile_start++;
@@ -104,23 +104,23 @@ void adventure_update(void) BANKED {
         }
 
         // Step Y
-        tile_start = (((PLAYER.pos.x >> 4) + PLAYER.bounds.left)  >> 3);
-        tile_end   = (((PLAYER.pos.x >> 4) + PLAYER.bounds.right) >> 3) + 1;
+        tile_start = ((PLAYER.pos.x + PLAYER.bounds_x16.left)  >> 7);
+        tile_end   = ((PLAYER.pos.x + PLAYER.bounds_x16.right) >> 7) + 1;
         if (angle > ANGLE_90DEG && angle < ANGLE_270DEG) {
-            UBYTE tile_y = ((new_pos.y >> 4) + PLAYER.bounds.bottom) >> 3;
+            UBYTE tile_y = (new_pos.y + PLAYER.bounds_x16.bottom) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
-                    new_pos.y = ((((tile_y) << 3) - PLAYER.bounds.bottom) << 4) - 1;
+                    new_pos.y = (((tile_y) << 7) - PLAYER.bounds_x16.bottom) - 1;
                     break;
                 }
                 tile_start++;
             }
             PLAYER.pos.y = new_pos.y;
         } else {
-            UBYTE tile_y = (((new_pos.y >> 4) + PLAYER.bounds.top) >> 3);
+            UBYTE tile_y = (new_pos.y + PLAYER.bounds_x16.top) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                    new_pos.y = ((((UBYTE)(tile_y + 1) << 3) - PLAYER.bounds.top) << 4) + 1;
+                    new_pos.y = (((UBYTE)(tile_y + 1) << 7) - PLAYER.bounds_x16.top) + 1;
                     break;
                 }
                 tile_start++;
@@ -138,7 +138,7 @@ void adventure_update(void) BANKED {
     hit_actor = NULL;
     if (IS_FRAME_ODD) {
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection_PLAYER(FALSE)) {
             // Landed on a trigger
             return;
         }

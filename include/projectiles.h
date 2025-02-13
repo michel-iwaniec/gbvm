@@ -18,4 +18,12 @@ void projectiles_render(void) NONBANKED;
 
 void projectile_launch(UBYTE index, point16_t *pos, UBYTE angle) BANKED;
 
+inline void projectile_def_update_bounds_x16(projectile_def_t * projectile_def)
+{
+    projectile_def->bounds_x16.left = projectile_def->bounds.left << 4;
+    projectile_def->bounds_x16.right = projectile_def->bounds.right << 4;
+    projectile_def->bounds_x16.top = projectile_def->bounds.top << 4;
+    projectile_def->bounds_x16.bottom = projectile_def->bounds.bottom << 4;
+}
+
 #endif

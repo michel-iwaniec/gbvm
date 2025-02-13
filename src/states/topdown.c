@@ -20,10 +20,10 @@
 UBYTE topdown_grid;
 
 void topdown_init(void) BANKED {
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = 0;
-    camera_deadzone_y = 0;
+    camera_offset_x_x16 = 0;
+    camera_offset_y_x16 = 0;
+    camera_deadzone_x_x16 = 0;
+    camera_deadzone_y_x16 = 0;
 
     if (topdown_grid == 16) {
         // Snap to 16px grid
@@ -48,7 +48,7 @@ void topdown_update(void) BANKED {
         player_moving = FALSE;
 
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection_PLAYER(FALSE)) {
             // Landed on a trigger
             return;
         }
@@ -59,9 +59,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_LEFT;
 
             // Check for collisions to left of player
-            tile_start = (((PLAYER.pos.y >> 4) + PLAYER.bounds.top)    >> 3);
-            tile_end   = (((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom) >> 3) + 1;
-            UBYTE tile_x = ((PLAYER.pos.x >> 4) + PLAYER.bounds.left) >> 3;
+            tile_start = (PLAYER.pos.y + PLAYER.bounds_x16.top) >> 7;
+            tile_end   = ((PLAYER.pos.y + PLAYER.bounds_x16.bottom) >> 7) + 1;
+            UBYTE tile_x = (PLAYER.pos.x + PLAYER.bounds_x16.left) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_x - 1, tile_start) & COLLISION_RIGHT) {
                     player_moving = FALSE;
@@ -74,9 +74,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_RIGHT;
 
             // Check for collisions to right of player
-            tile_start = (((PLAYER.pos.y >> 4) + PLAYER.bounds.top)    >> 3);
-            tile_end   = (((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom) >> 3) + 1;
-            UBYTE tile_x = ((PLAYER.pos.x >> 4) + PLAYER.bounds.right) >> 3;
+            tile_start = (PLAYER.pos.y + PLAYER.bounds_x16.top)    >> 7;
+            tile_end   = ((PLAYER.pos.y + PLAYER.bounds_x16.bottom) >> 7) + 1;
+            UBYTE tile_x = (PLAYER.pos.x + PLAYER.bounds_x16.right) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_x + 1, tile_start) & COLLISION_LEFT) {
                     player_moving = FALSE;
@@ -89,9 +89,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_UP;
 
             // Check for collisions below player
-            tile_start = (((PLAYER.pos.x >> 4) + PLAYER.bounds.left)  >> 3);
-            tile_end   = (((PLAYER.pos.x >> 4) + PLAYER.bounds.right) >> 3) + 1;
-            UBYTE tile_y = ((PLAYER.pos.y >> 4) + PLAYER.bounds.top) >> 3;
+            tile_start = ((PLAYER.pos.x + PLAYER.bounds_x16.left)  >> 7);
+            tile_end   = ((PLAYER.pos.x + PLAYER.bounds_x16.right) >> 7) + 1;
+            UBYTE tile_y = (PLAYER.pos.y + PLAYER.bounds_x16.top) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y - 1) & COLLISION_BOTTOM) {
                     player_moving = FALSE;
@@ -104,9 +104,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_DOWN;
 
             // Check for collisions below player
-            tile_start = (((PLAYER.pos.x >> 4) + PLAYER.bounds.left)  >> 3);
-            tile_end   = (((PLAYER.pos.x >> 4) + PLAYER.bounds.right) >> 3) + 1;
-            UBYTE tile_y = ((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom) >> 3;
+            tile_start = (PLAYER.pos.x + PLAYER.bounds_x16.left)  >> 7;
+            tile_end   = ((PLAYER.pos.x + PLAYER.bounds_x16.right) >> 7) + 1;
+            UBYTE tile_y = (PLAYER.pos.y + PLAYER.bounds_x16.bottom) >> 7;
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y + 1) & COLLISION_TOP) {
                     player_moving = FALSE;
