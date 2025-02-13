@@ -59,24 +59,26 @@
 #define IS_SLOPE_RIGHT(t) (((t) & 0x10) == 0)
 #define IS_LADDER(t) (((t) & 0xF0) == 0x10)
 
-#define VEL_TO_SUBPX(v) ((v) >> 8)
+#define VEL_TO_SUBPX(v) (((v) & 0x8000) ? (((v) >> 8) | 0xFF00) : ((v) >> 8))
 
 UBYTE grounded;
 UBYTE on_slope;
 UBYTE slope_y;
 UBYTE on_ladder;
 WORD pl_vel_x;
+WORD pl_vel_x_subpx;
 WORD pl_vel_y;
+WORD pl_vel_y_subpx;
 WORD plat_min_vel;
 WORD plat_walk_vel;
-WORD plat_climb_vel;
+UWORD plat_climb_vel;
 WORD plat_run_vel;
 WORD plat_walk_acc;
-WORD plat_run_acc;
-WORD plat_dec;
-WORD plat_jump_vel;
-WORD plat_grav;
-WORD plat_hold_grav;
+UWORD plat_run_acc;
+UWORD plat_dec;
+UWORD plat_jump_vel;
+UWORD plat_grav;
+UWORD plat_hold_grav;
 WORD plat_max_fall_vel;
 
 void platform_init(void) BANKED {
@@ -98,7 +100,8 @@ void platform_init(void) BANKED {
     if (IS_LADDER(tile_at(tile_x, tile_y - 1))) {
         // Snap to ladder
         UBYTE p_half_width = (PLAYER.bounds.right - PLAYER.bounds.left) >> 1;
-        PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) + 3 - (PLAYER.bounds.left + p_half_width));
+        UBYTE p_half_width_sp = PX_TO_SUBPX(p_half_width >> 1);
+        PLAYER.pos.x = TILE_TO_SUBPX(tile_x) + PX_TO_SUBPX(3) - (PLAYER.bounds_sp.left - PLAYER.pos.x + p_half_width_sp);
         actor_set_anim(&PLAYER, ANIM_CLIMB);
         actor_stop_anim(&PLAYER);
         on_ladder = TRUE;
@@ -107,20 +110,24 @@ void platform_init(void) BANKED {
         actor_set_anim_idle(&PLAYER);
     }
 
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = PLATFORM_CAMERA_DEADZONE_X;
-    camera_deadzone_y = PLATFORM_CAMERA_DEADZONE_Y;
+    camera_offset_x_sp = PX_TO_SUBPX(0);
+    camera_offset_y_sp = PX_TO_SUBPX(0);
+    camera_deadzone_x_sp = PX_TO_SUBPX(PLATFORM_CAMERA_DEADZONE_X);
+    camera_deadzone_y_sp = PX_TO_SUBPX(PLATFORM_CAMERA_DEADZONE_Y);
 
     game_time = 0;
+    actor_update_bounds_sp(&PLAYER);
 }
 
 void platform_update(void) BANKED {
     UBYTE tile_start, tile_end;
     actor_t *hit_actor;
     UBYTE p_half_width = (PLAYER.bounds.right - PLAYER.bounds.left) >> 1;
-    UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width); 
-    UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
+    UBYTE p_half_width_sp = PX_TO_SUBPX(p_half_width >> 1);
+    UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.bounds_sp.left + p_half_width_sp); 
+    UBYTE tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.top + PX_TO_SUBPX(1));
+
+    //actor_update_bounds_sp(&PLAYER);
 
     // Input
     if (on_ladder) {
@@ -128,7 +135,7 @@ void platform_update(void) BANKED {
         pl_vel_y = 0;
         if (INPUT_UP) {
             // Climb ladder
-            if(IS_LADDER( tile_at(tile_x_mid, PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom)))) { // Grab with bottom edge
+            if(IS_LADDER( tile_at(tile_x_mid, SUBPX_TO_TILE(PLAYER.bounds_sp.bottom)))) { // Grab with bottom edge
                 pl_vel_y = -plat_climb_vel;
             }
             else {
@@ -136,15 +143,15 @@ void platform_update(void) BANKED {
             }
         } else if (INPUT_DOWN) {
             // Descend ladder
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom + 1);
+            tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom + PX_TO_SUBPX(1));
             if (IS_LADDER(tile_at(tile_x_mid, tile_y))) {
                 pl_vel_y = plat_climb_vel;
             }
         } else if (INPUT_LEFT) {
             on_ladder = FALSE;
             // Check if able to leave ladder on left
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
             while (tile_start != tile_end) {
                 if (tile_at(tile_x_mid - 1, tile_start) & COLLISION_RIGHT) {
                     on_ladder = TRUE;
@@ -155,8 +162,8 @@ void platform_update(void) BANKED {
         } else if (INPUT_RIGHT) {
             on_ladder = FALSE;
             // Check if able to leave ladder on right
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
             while (tile_start != tile_end) {
                 if (tile_at(tile_x_mid + 1, tile_start) & COLLISION_LEFT) {
                     on_ladder = TRUE;
@@ -187,7 +194,7 @@ void platform_update(void) BANKED {
         } else if (grounded) {
             if (pl_vel_x < 0) {
                 pl_vel_x += plat_dec;
-                if (pl_vel_x > 0) {
+                if (pl_vel_x >= 0) {
                     pl_vel_x = 0;
                 }
             } else if (pl_vel_x > 0) {
@@ -202,19 +209,19 @@ void platform_update(void) BANKED {
         // Vertical Movement
         if (INPUT_UP) {
             // Grab upwards ladder
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom); // was top, use feet instead
+            tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom); // was top, use feet instead
             col = tile_at(tile_x_mid, tile_y);
             if (IS_LADDER(col)) {
-                PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 3 - (PLAYER.bounds.left + p_half_width));
+                PLAYER.pos.x = TILE_TO_SUBPX(tile_x_mid) + PX_TO_SUBPX(3) - (PLAYER.bounds_sp.left - PLAYER.pos.x + p_half_width_sp);
                 on_ladder = TRUE;
                 pl_vel_x = 0;
             }
         } else if (INPUT_DOWN) {
             // Grab downwards ladder
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom + 1);
+            tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom + PX_TO_SUBPX(1));
             col = tile_at(tile_x_mid, tile_y);
             if (IS_LADDER(col)) {
-                PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 3 - (PLAYER.bounds.left + p_half_width));
+                PLAYER.pos.x = TILE_TO_SUBPX(tile_x_mid) + PX_TO_SUBPX(3) - (PLAYER.bounds_sp.left - PLAYER.pos.x + p_half_width_sp);
                 on_ladder = TRUE;
                 pl_vel_x = 0;
             }
@@ -230,16 +237,19 @@ void platform_update(void) BANKED {
         // Step X
         UBYTE prev_on_slope = on_slope;
         on_slope = FALSE;
-        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+        tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+        tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
         UWORD old_x = PLAYER.pos.x;
-        WORD new_x = PLAYER.pos.x + VEL_TO_SUBPX(pl_vel_x);
+        pl_vel_x_subpx = VEL_TO_SUBPX(pl_vel_x);
+        UWORD new_x = PLAYER.pos.x + pl_vel_x_subpx;
+        UWORD new_left = PLAYER.bounds_sp.left + pl_vel_x_subpx;
+        UWORD new_right = PLAYER.bounds_sp.right + pl_vel_x_subpx;
         UBYTE tile_x = 0;
         UBYTE col_mid = 0;
         if (pl_vel_x > 0) {
-            tile_x = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.right);
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom);
-            UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.left + p_half_width + 1); 
+            tile_x = SUBPX_TO_TILE(new_right);
+            tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom);
+            UBYTE tile_x_mid = SUBPX_TO_TILE(new_left + p_half_width_sp + PX_TO_SUBPX(1)); 
             col_mid = tile_at(tile_x_mid, tile_y);
             if (IS_ON_SLOPE(col_mid)) {
                 on_slope = col_mid;
@@ -279,24 +289,24 @@ void platform_update(void) BANKED {
                             }
                         }
                     }
-                    new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
+                    new_x = (TILE_TO_SUBPX(tile_x) - PX_TO_SUBPX(PLAYER.bounds.right)) - 1;
                     pl_vel_x = 0;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.bounds.right - 1), new_x);
+            PLAYER.pos.x = MIN(image_width_sp - PX_TO_SUBPX(PLAYER.bounds.right) - PX_TO_SUBPX(1), new_x);
         } else if (pl_vel_x < 0) {
-            tile_x = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.left);
-            tile_y   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom);
-            UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.left + p_half_width + 1); 
+            tile_x = SUBPX_TO_TILE(new_left);
+            tile_y   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom);
+            UBYTE tile_x_mid = SUBPX_TO_TILE(new_left + p_half_width_sp + PX_TO_SUBPX(1)); 
             col_mid = tile_at(tile_x_mid, tile_y);
             if (IS_ON_SLOPE(col_mid)) {
                 on_slope = col_mid;
                 slope_y = tile_y;
             }
 
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
             UBYTE slope_on_y = FALSE;
             while (tile_start != tile_end) {
                 col = tile_at(tile_x, tile_start);
@@ -330,7 +340,7 @@ void platform_update(void) BANKED {
                             }
                         }
                     }
-                    new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.bounds.left) + 1;
+                    new_x = TILE_TO_SUBPX(tile_x + 1) - PX_TO_SUBPX(PLAYER.bounds.left) + 1;
                     pl_vel_x = 0;
                     break;
                 }
@@ -345,36 +355,38 @@ void platform_update(void) BANKED {
         grounded = FALSE;
         // 1 frame leniency of grounded state if we were on a slope last frame
         if (prev_on_slope) grounded = TRUE;
-        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
+        tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
+        tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.right) + 1;
+        pl_vel_y_subpx = VEL_TO_SUBPX(pl_vel_y);
         if (pl_vel_y > 0) {
-            UWORD new_y = PLAYER.pos.y + VEL_TO_SUBPX(pl_vel_y);
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) - 1;
-            UBYTE new_tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.bottom);
+            UWORD new_y = PLAYER.pos.y + pl_vel_y_subpx;
+            UWORD new_bottom = PLAYER.bounds_sp.bottom + pl_vel_y_subpx;
+            tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) - 1;
+            UBYTE new_tile_y = SUBPX_TO_TILE(new_bottom);
             // If previously grounded and gravity is not enough to pull us down to the next tile, manually check it for the next slope
             // This prevents the "animation glitch" when going down slopes
             if (prev_grounded && new_tile_y == (tile_y + 1)) new_tile_y += 1;
-            UWORD x_mid_coord = (SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width + 1);
+            UWORD x_mid_coord_sp = (PLAYER.bounds_sp.left + p_half_width_sp + PX_TO_SUBPX(1));
             while (tile_y <= new_tile_y) {
-                UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
-                UWORD tile_x_coord = TILE_TO_PX(PX_TO_TILE(x_mid_coord));
-                UWORD x_offset = x_mid_coord - tile_x_coord;
+                UBYTE col = tile_at(SUBPX_TO_TILE(x_mid_coord_sp), tile_y);
+                UWORD tile_x_coord_sp = TILE_TO_SUBPX(SUBPX_TO_TILE(x_mid_coord_sp));
+                UWORD x_offset_sp = x_mid_coord_sp - tile_x_coord_sp;
                 UWORD slope_y_coord = 0;
                 if (IS_ON_SLOPE(col)) {
                     if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_RIGHT) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - x_offset) - PLAYER.bounds.bottom) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (PX_TO_SUBPX(8) - x_offset_sp) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_BOT) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - (x_offset >> 1)) - PLAYER.bounds.bottom) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (PX_TO_SUBPX(8) - (x_offset_sp >> 1)) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_TOP) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (4 - (x_offset >> 1)) - PLAYER.bounds.bottom) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (PX_TO_SUBPX(4) - (x_offset_sp >> 1)) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     }
 
                     else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_LEFT) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (x_offset) - PLAYER.bounds.bottom) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (x_offset_sp) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_BOT) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (x_offset >> 1) - PLAYER.bounds.bottom + 4) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (x_offset_sp >> 1) - PX_TO_SUBPX(PLAYER.bounds.bottom) + PX_TO_SUBPX(4)) - 1;
                     } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_TOP) {
-                        slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (x_offset >> 1) - PLAYER.bounds.bottom) - 1;
+                        slope_y_coord = (TILE_TO_SUBPX(tile_y) + (x_offset_sp >> 1) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     }
                 }
 
@@ -385,7 +397,7 @@ void platform_update(void) BANKED {
                         continue;
                     }
                     // If we are moving up a slope, check for top collision
-                    UBYTE slope_top_tile_y = PX_TO_TILE(SUBPX_TO_PX(slope_y_coord) + PLAYER.bounds.top);
+                    UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + PX_TO_SUBPX(PLAYER.bounds.top));
                     while (tile_start != tile_end) {
                         if (tile_at(tile_start, slope_top_tile_y) & COLLISION_BOTTOM) {
                             pl_vel_y = 0;
@@ -410,13 +422,13 @@ void platform_update(void) BANKED {
                 tile_y++;
             }
 
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.bottom);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.right) + 1;
+            tile_y = SUBPX_TO_TILE(new_bottom);
             while (tile_start != tile_end) {
                 // only snap to the top of a platform if feet are above the line
-                if (tile_at(tile_start, tile_y) & COLLISION_TOP && (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom - 2) < TILE_TO_PX(tile_y) ) {
-                    new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+                if (tile_at(tile_start, tile_y) & COLLISION_TOP && (PLAYER.bounds_sp.bottom - PX_TO_SUBPX(2)) < TILE_TO_SUBPX(tile_y) ) {
+                    new_y = (TILE_TO_SUBPX(tile_y) - PX_TO_SUBPX(PLAYER.bounds.bottom)) - 1;
                     grounded = TRUE;
                     pl_vel_y = 0;
                     break;
@@ -425,11 +437,12 @@ void platform_update(void) BANKED {
             }
             PLAYER.pos.y = new_y;
         } else if (pl_vel_y < 0) {
-            UWORD new_y = PLAYER.pos.y + VEL_TO_SUBPX(pl_vel_y);
-            tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.top);
+            UWORD new_y = PLAYER.pos.y + pl_vel_y_subpx;
+            UWORD new_top = PLAYER.bounds_sp.top + pl_vel_y_subpx;
+            tile_y = SUBPX_TO_TILE(new_top);
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                    new_y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.bounds.top) + 1;
+                    new_y = (TILE_TO_SUBPX((UBYTE)(tile_y + 1)) - PX_TO_SUBPX(PLAYER.bounds.top)) + 1; // buggy jump below ladder
                     pl_vel_y = 0;
                     break;
                 }
@@ -442,9 +455,10 @@ end_y_collision:
         // Clamp Y Velocity
         pl_vel_y = MIN(pl_vel_y, plat_max_fall_vel);
     }
+    actor_update_bounds_sp(&PLAYER);
 
     // Check for trigger collisions
-    if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, INPUT_UP_PRESSED)) {
+    if (trigger_activate_at_intersection(&PLAYER.bounds_sp, INPUT_UP_PRESSED)) {
         // Landed on a trigger
         return;
     }

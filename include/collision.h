@@ -13,45 +13,38 @@
 #define COLLISION_ALL 0xF
 #define TILE_PROP_LADDER 0x10
 
-typedef struct bounding_box_t {
-    BYTE left, right, top, bottom;
-} bounding_box_t;
-
 extern UBYTE collision_bank;
 extern unsigned char *collision_ptr;
 extern UBYTE image_tile_width;
 extern UBYTE image_tile_height;
 
 /**
- * Check if point is within positioned bounding box.
+ * Check if point is within bounding box.
  *
  * @param bb Pointer to bounding box
- * @param offset Pointer to position offset for bounding box (e.g Actor position)
  * @param point Pointer to position to look for within bounding box
  * @return Point is within bounding box
  */
-inline UBYTE bb_contains(bounding_box_t *bb, point16_t *offset, point16_t *point) {
-    if ((point->x < SUBPX_TO_PX(offset->x) + bb->left) || 
-        (point->x > SUBPX_TO_PX(offset->x) + bb->right)) return FALSE;
-    if ((point->y < SUBPX_TO_PX(offset->y) + bb->top) || 
-        (point->y > SUBPX_TO_PX(offset->y) + bb->bottom)) return FALSE;
+inline UBYTE bb_contains(bounding_box_16_t *bb_sp, point16_t *point) {
+    if ((point->x < bb_sp->left) || 
+        (point->x > bb_sp->right)) return FALSE;
+    if ((point->y < bb_sp->top) || 
+        (point->y > bb_sp->bottom)) return FALSE;
     return TRUE;
 }
 
 /**
- * Check if two positioned bounding boxes intersect.
+ * Check if two bounding boxes intersect.
  *
  * @param bb_a Pointer to bounding box A
- * @param offset_a Pointer to position offset for bounding box A
  * @param bb_b Pointer to bounding box B
- * @param offset_b Pointer to position offset for bounding box B
  * @return Positioned bounding boxes intersect
  */
-inline UBYTE bb_intersects(bounding_box_t *bb_a, point16_t *offset_a, bounding_box_t *bb_b, point16_t *offset_b) {
-    if ((SUBPX_TO_PX(offset_b->x) + bb_b->left   > SUBPX_TO_PX(offset_a->x) + bb_a->right) ||
-        (SUBPX_TO_PX(offset_b->x) + bb_b->right  < SUBPX_TO_PX(offset_a->x) + bb_a->left)) return FALSE;
-    if ((SUBPX_TO_PX(offset_b->y) + bb_b->top    > SUBPX_TO_PX(offset_a->y) + bb_a->bottom) ||
-        (SUBPX_TO_PX(offset_b->y) + bb_b->bottom < SUBPX_TO_PX(offset_a->y) + bb_a->top)) return FALSE;
+inline UBYTE bb_intersects(bounding_box_16_t *bb_sp_a, bounding_box_16_t *bb_sp_b) {
+    if ((bb_sp_b->left   > bb_sp_a->right) ||
+        (bb_sp_b->right  < bb_sp_a->left)) return FALSE;
+    if ((bb_sp_b->top    > bb_sp_a->bottom) ||
+        (bb_sp_b->bottom < bb_sp_a->top)) return FALSE;
     return TRUE;
 }
 

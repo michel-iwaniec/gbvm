@@ -9,8 +9,8 @@
 #define MAX_ACTORS_ACTIVE     12
 
 #define PLAYER                actors[0]
-#define ON_8PX_GRID(A)        ( MOD_8((A).x >> 4) == 0 &&  MOD_8((A).y >> 4) == 0)
-#define ON_16PX_GRID(A)       (MOD_16((A).x >> 4) == 0 && MOD_16((A).y >> 4) == 8)
+#define ON_8PX_GRID(A)        ( MOD_8(SUBPX_TO_PX((A).x)) == 0 &&  MOD_8(SUBPX_TO_PX((A).y)) == 0)
+#define ON_16PX_GRID(A)       (MOD_16(SUBPX_TO_PX((A).x)) == 0 && MOD_16(SUBPX_TO_PX((A).y)) == 8)
 
 #define PLAYER_HURT_IFRAMES   20
 
@@ -54,7 +54,7 @@ UBYTE actor_get_frame_offset(actor_t *actor) BANKED;
 actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED;
 actor_t *actor_in_front_of_player(UBYTE grid_size, UBYTE inc_noclip) BANKED;
 actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED;
-actor_t *actor_overlapping_bb(bounding_box_t *bb, point16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED;
+actor_t *actor_overlapping_bb(bounding_box_16_t *bb, actor_t *ignore, UBYTE inc_noclip) BANKED;
 void actor_set_anim_idle(actor_t *actor) BANKED;
 void actor_set_anim_moving(actor_t *actor) BANKED;
 void actor_set_dir(actor_t *actor, direction_e dir, UBYTE moving) BANKED;
@@ -78,4 +78,5 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED;
 void activate_actors_in_col(UBYTE x, UBYTE y) BANKED;
 void player_init(void) BANKED;
 
+void actor_update_bounds_sp(actor_t *actor) NONBANKED;
 #endif

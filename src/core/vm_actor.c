@@ -31,13 +31,13 @@ BANKREF(VM_ACTOR)
 
 typedef struct act_move_to_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
     UBYTE ATTR;
 } act_move_to_t;
 
 typedef struct act_set_pos_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
 } act_set_pos_t;
 
 typedef struct act_set_frame_t {
@@ -67,8 +67,8 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         actor_set_anim_moving(actor);
 
         // Snap to nearest pixel before moving
-        actor->pos.x = actor->pos.x & 0xFFF0;
-        actor->pos.y = actor->pos.y & 0xFFF0;
+        actor->pos.x = SUBX_SNAP_PX(actor->pos.x);
+        actor->pos.y = SUBX_SNAP_PX(actor->pos.y);
 
         if (CHK_FLAG(params->ATTR, ACTOR_ATTR_DIAGONAL)) {
             SET_FLAG(THIS->flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
@@ -152,10 +152,12 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Move actor
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
+        actor_update_bounds_sp(actor);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds_sp, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
+            actor_update_bounds_sp(actor);
             THIS->flags = 0;
             actor_set_anim_idle(actor);
             return;
@@ -186,12 +188,14 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Move actor
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
+        actor_update_bounds_sp(actor);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds_sp, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
             THIS->flags = 0;
             actor_set_anim_idle(actor);
+            actor_update_bounds_sp(actor);
             return;
         }
 
@@ -216,8 +220,11 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     if (!CHK_FLAG(THIS->flags, MOVE_NEEDED_H | MOVE_NEEDED_V)) {
         THIS->flags = MOVE_INACTIVE;
         actor_set_anim_idle(actor);
+        actor_update_bounds_sp(actor);
         return;
     }
+
+    actor_update_bounds_sp(actor);
 
     THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
     return;
@@ -293,6 +300,7 @@ void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
     actor->pos.x = params->X;
     actor->pos.y = params->Y;
+    actor_update_bounds_sp(actor);
 }
 
 void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
@@ -356,6 +364,8 @@ void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx, BYTE left, BYTE right, BY
     actor->bounds.right = right;
     actor->bounds.top = top;
     actor->bounds.bottom = bottom;
+    //
+    actor_update_bounds_sp(actor);
 }
 
 void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) OLDCALL BANKED {
@@ -366,6 +376,7 @@ void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_ba
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
+    actor_update_bounds_sp(actor);
     actor_reset_anim(actor);
 }
 
@@ -429,6 +440,7 @@ void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) 
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
+    actor_update_bounds_sp(actor);
     actor_reset_anim(actor);
 }
 

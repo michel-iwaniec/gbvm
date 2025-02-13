@@ -12,7 +12,7 @@
 BANKREF(VM_CAMERA)
 
 typedef struct camera_position_t {
-    INT16 X, Y;
+    UINT16 X, Y;
 } camera_position_t;
 
 void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lock_camera) OLDCALL BANKED {

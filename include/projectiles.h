@@ -18,4 +18,12 @@ void projectiles_render(void) NONBANKED;
 
 void projectile_launch(UBYTE index, point16_t *pos, UBYTE angle) BANKED;
 
+inline void projectile_update_bounds_sp(projectile_t* projectile)
+{
+    projectile->bounds_sp.left = projectile->pos.x + PX_TO_SUBPX(projectile->def.bounds.left);
+    projectile->bounds_sp.right = projectile->pos.x + PX_TO_SUBPX(projectile->def.bounds.right);
+    projectile->bounds_sp.top = projectile->pos.y + PX_TO_SUBPX(projectile->def.bounds.top);
+    projectile->bounds_sp.bottom = projectile->pos.y + PX_TO_SUBPX(projectile->def.bounds.bottom);
+}
+
 #endif

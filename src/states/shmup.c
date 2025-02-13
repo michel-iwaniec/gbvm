@@ -11,6 +11,7 @@
 #include "input.h"
 #include "trigger.h"
 #include "vm.h"
+#include "math.h"
 
 #ifndef SHOOTER_HURT_IFRAMES
 #define SHOOTER_HURT_IFRAMES 10
@@ -23,28 +24,28 @@ direction_e shooter_direction;
 
 void shmup_init(void) BANKED {
 
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = 0;
-    camera_deadzone_y = 0;
+    camera_offset_x_sp = PX_TO_SUBPX(0);
+    camera_offset_y_sp = PX_TO_SUBPX(0);
+    camera_deadzone_x_sp = PX_TO_SUBPX(0);
+    camera_deadzone_y_sp = PX_TO_SUBPX(0);
 
     shooter_direction = PLAYER.dir;
 
     if (shooter_direction == DIR_LEFT) {
         // Right to left scrolling
-        camera_offset_x = 48;
+        camera_offset_x_sp = PX_TO_SUBPX(48);
         shooter_dest = PX_TO_SUBPX(SCREEN_WIDTH_HALF + 48);
     } else if (shooter_direction == DIR_RIGHT) {
         // Left to right scrolling
-        camera_offset_x = -64;
+        camera_offset_x_sp = PX_TO_SUBPX(-64);
         shooter_dest = PX_TO_SUBPX(image_width - SCREEN_WIDTH_HALF - 64);
     } else if (shooter_direction == DIR_UP) {
         // Bottom to top scrolling
-        camera_offset_y = 48;
+        camera_offset_y_sp = PX_TO_SUBPX(48);
         shooter_dest = PX_TO_SUBPX(SCREEN_WIDTH_HALF + 40);
     } else {
         // Top to bottom scrolling
-        camera_offset_y = -48;
+        camera_offset_y_sp = PX_TO_SUBPX(-48);
         shooter_dest = PX_TO_SUBPX(image_height - SCREEN_WIDTH_HALF - 40);
     }
 
@@ -86,7 +87,7 @@ void shmup_update(void) BANKED {
 
     // Move player from input
     if (player_moving) {
-        point16_t new_pos;
+        upoint16_t new_pos;
         new_pos.x = PLAYER.pos.x;
         new_pos.y = PLAYER.pos.y;
         point_translate_dir(&new_pos, PLAYER.dir, PLAYER.move_speed);
@@ -94,23 +95,25 @@ void shmup_update(void) BANKED {
         // Check for tile collisions
         if (IS_DIR_HORIZONTAL(shooter_direction)) {
             // Step Y
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.right) + 1;
             if (PLAYER.dir == DIR_DOWN) {
-                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.bottom);
+                uint16_t bottom_sp_rel = PLAYER.bounds_sp.bottom - PLAYER.pos.y;
+                UBYTE tile_y = SUBPX_TO_TILE(new_pos.y + bottom_sp_rel);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
-                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+                        new_pos.y = (TILE_TO_SUBPX(tile_y) - bottom_sp_rel) - 1;
                         break;
                     }
                     tile_start++;
                 }
                 PLAYER.pos.y = new_pos.y;
             } else {
-                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.top);
+                uint16_t top_sp_rel = PLAYER.bounds_sp.top - PLAYER.pos.y;
+                UBYTE tile_y = SUBPX_TO_TILE(new_pos.y + top_sp_rel);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.bounds.top) + 1;
+                        new_pos.y = ((UBYTE)TILE_TO_SUBPX(tile_y + 1) - top_sp_rel) + 1;
                         break;
                     }
                     tile_start++;
@@ -119,23 +122,25 @@ void shmup_update(void) BANKED {
             }
         } else {
             // Step X
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
             if (PLAYER.dir == DIR_RIGHT) {
-                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.right);
+                uint16_t right_sp_rel = PLAYER.bounds_sp.right - PLAYER.pos.x;
+                UBYTE tile_x = SUBPX_TO_TILE(new_pos.x + right_sp_rel);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_LEFT) {
-                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;           
+                        new_pos.x = (TILE_TO_SUBPX(tile_x) - right_sp_rel) - 1;
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.bounds.right - 1), new_pos.x);
+                PLAYER.pos.x = MIN((image_width_sp - right_sp_rel - PX_TO_SUBPX(1)), new_pos.x);
             } else {
-                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.left);
+                uint16_t left_sp_rel = PLAYER.bounds_sp.left - PLAYER.pos.x;
+                UBYTE tile_x = SUBPX_TO_TILE(new_pos.x + left_sp_rel);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_RIGHT) {
-                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.bounds.left) + 1;         
+                        new_pos.x = (TILE_TO_SUBPX(tile_x + 1) - left_sp_rel) + 1;
                         break;
                     }
                     tile_start++;
@@ -164,10 +169,11 @@ void shmup_update(void) BANKED {
             PLAYER.pos.y = shooter_dest;
         }
     }
+    actor_update_bounds_sp(&PLAYER);
 
     if (IS_FRAME_ODD) {
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection(&PLAYER.bounds_sp, FALSE)) {
             // Landed on a trigger
             return;
         }

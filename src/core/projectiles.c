@@ -27,6 +27,17 @@ void projectiles_init(void) BANKED {
 static UBYTE _save_bank;
 static projectile_t *projectile;
 static projectile_t *prev_projectile;
+WORD delta_pos_x;
+WORD delta_pos_y;
+
+static void remove_projectile() NONBANKED
+{
+    // Remove projectile
+    projectile_t *next = projectile->next;
+    LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
+    LL_PUSH_HEAD(projectiles_inactive_head, projectile);
+    projectile = next;
+}
 
 void projectiles_update(void) NONBANKED {
     projectile_t *next;
@@ -38,11 +49,7 @@ void projectiles_update(void) NONBANKED {
 
     while (projectile) {
         if (projectile->def.life_time == 0) {
-            // Remove projectile
-            next = projectile->next;
-            LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-            LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-            projectile = next;
+            remove_projectile();
             continue;
         }
         projectile->def.life_time--;
@@ -60,23 +67,25 @@ void projectiles_update(void) NONBANKED {
             }
         }
 
-        // Move projectile
-        projectile->pos.x += projectile->delta_pos.x;
-        projectile->pos.y -= projectile->delta_pos.y;
+        // Move projectile and its absolute bounding box
+        delta_pos_x = projectile->delta_pos.x;
+        delta_pos_y = projectile->delta_pos.y;
+        projectile->pos.x += delta_pos_x;
+        projectile->pos.y -= delta_pos_y;
+        projectile->bounds_sp.left += delta_pos_x;
+        projectile->bounds_sp.right += delta_pos_x;
+        projectile->bounds_sp.top -= delta_pos_y;
+        projectile->bounds_sp.bottom -= delta_pos_y;
 
         if (IS_FRAME_EVEN) {
-            actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
+            actor_t *hit_actor = actor_overlapping_bb(&projectile->bounds_sp, NULL, FALSE);
             if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
                 // Hit! - Fire collision script here
                 if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
                     script_execute(hit_actor->script.bank, hit_actor->script.ptr, &(hit_actor->hscript_hit), 1, (UWORD)(projectile->def.collision_group));
                 }
                 if (!projectile->def.strong) {
-                    // Remove projectile
-                    next = projectile->next;
-                    LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-                    LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-                    projectile = next;
+                    remove_projectile();
                     continue;
                 }
             }
@@ -86,11 +95,7 @@ void projectiles_update(void) NONBANKED {
               screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y + 8;
 
         if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
-            // Remove projectile
-            projectile_t *next = projectile->next;
-            LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-            LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-            projectile = next;
+            remove_projectile();
             continue;
         }
 
@@ -123,11 +128,7 @@ void projectiles_render(void) NONBANKED {
               screen_y = (SUBPX_TO_PX(projectile->pos.y) + 8) - draw_scroll_y;
 
         if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
-            // Remove projectile
-            projectile_t *next = projectile->next;
-            LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-            LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-            projectile = next;
+            remove_projectile();
             continue;
         }
 
@@ -190,6 +191,7 @@ void projectile_launch(UBYTE index, point16_t *pos, UBYTE angle) BANKED {
         }
 
         point_translate_angle_to_delta(&projectile->delta_pos, angle, projectile->def.move_speed);
+        projectile_update_bounds_sp(projectile);
 
         LL_REMOVE_HEAD(projectiles_inactive_head);
         LL_PUSH_HEAD(projectiles_active_head, projectile);

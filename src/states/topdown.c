@@ -12,6 +12,7 @@
 #include "trigger.h"
 #include "math.h"
 #include "vm.h"
+#include "math.h"
 
 #ifndef INPUT_TOPDOWN_INTERACT
 #define INPUT_TOPDOWN_INTERACT INPUT_A
@@ -20,10 +21,10 @@
 UBYTE topdown_grid;
 
 void topdown_init(void) BANKED {
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = 0;
-    camera_deadzone_y = 0;
+    camera_offset_x_sp = PX_TO_SUBPX(0);
+    camera_offset_y_sp = PX_TO_SUBPX(0);
+    camera_deadzone_x_sp = PX_TO_SUBPX(0);
+    camera_deadzone_y_sp = PX_TO_SUBPX(0);
 
     if (topdown_grid == 16) {
         // Snap to 16px grid
@@ -48,7 +49,7 @@ void topdown_update(void) BANKED {
         player_moving = FALSE;
 
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection(&PLAYER.bounds_sp, FALSE)) {
             // Landed on a trigger
             return;
         }
@@ -59,9 +60,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_LEFT;
 
             // Check for collisions to left of player
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
-            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
+            UBYTE tile_x = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
             while (tile_start != tile_end) {
                 if (tile_at(tile_x - 1, tile_start) & COLLISION_RIGHT) {
                     player_moving = FALSE;
@@ -74,9 +75,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_RIGHT;
 
             // Check for collisions to right of player
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
-            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom) + 1;
+            UBYTE tile_x = SUBPX_TO_TILE(PLAYER.bounds_sp.right);
             while (tile_start != tile_end) {
                 if (tile_at(tile_x + 1, tile_start) & COLLISION_LEFT) {
                     player_moving = FALSE;
@@ -89,9 +90,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_UP;
 
             // Check for collisions below player
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
-            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.right) + 1;
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.top);
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y - 1) & COLLISION_BOTTOM) {
                     player_moving = FALSE;
@@ -104,9 +105,9 @@ void topdown_update(void) BANKED {
             new_dir = DIR_DOWN;
 
             // Check for collisions below player
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
-            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom);
+            tile_start = SUBPX_TO_TILE(PLAYER.bounds_sp.left);
+            tile_end   = SUBPX_TO_TILE(PLAYER.bounds_sp.right) + 1;
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.bounds_sp.bottom);
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y + 1) & COLLISION_TOP) {
                     player_moving = FALSE;
@@ -154,4 +155,5 @@ void topdown_update(void) BANKED {
     }
 
     if (player_moving) point_translate_dir(&PLAYER.pos, PLAYER.dir, PLAYER.move_speed);
+    actor_update_bounds_sp(&PLAYER);
 }

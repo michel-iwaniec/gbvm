@@ -42,7 +42,7 @@ typedef struct actor_t
     bool collision_enabled    : 1;
     bool movement_interrupt   : 1;
     bool persistent           : 1;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
     bounding_box_t bounds;
     uint8_t base_tile;
@@ -64,6 +64,9 @@ typedef struct actor_t
     // Linked list
     struct actor_t *next;
     struct actor_t *prev;
+
+    // Collision optimization: Store bounding box in absolute subpixels
+    bounding_box_16_t bounds_sp;
 } actor_t;
 
 #define TRIGGER_HAS_ENTER_SCRIPT    1
@@ -139,6 +142,7 @@ typedef struct projectile_t
     uint8_t frame_start;
     uint8_t frame_end;
     projectile_def_t def;
+    bounding_box_16_t bounds_sp;
     struct projectile_t *next;
 } projectile_t;
 
@@ -157,7 +161,7 @@ typedef struct font_desc_t {
 
 typedef struct scene_stack_item_t {
     far_ptr_t scene;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
 } scene_stack_item_t;
 

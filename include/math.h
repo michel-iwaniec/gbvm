@@ -96,6 +96,14 @@ typedef struct point8_t {
     int8_t x, y;
 } point8_t;
 
+typedef struct bounding_box_t {
+    int8_t left, right, top, bottom;
+} bounding_box_t;
+
+typedef struct bounding_box_16_t {
+    uint16_t left, right, top, bottom;
+} bounding_box_16_t;
+
 typedef enum {
     DIR_DOWN = 0,
     DIR_RIGHT,
@@ -107,7 +115,7 @@ typedef enum {
 extern const int8_t sine_wave[256];
 extern const uint8_t dir_angle_lookup[4];
 
-inline void point_translate_dir(point16_t *point, direction_e dir, uint8_t speed) {
+inline void point_translate_dir(upoint16_t *point, direction_e dir, uint8_t speed) {
     if(dir == DIR_RIGHT)
         point->x += speed;
     else if(dir == DIR_LEFT)
@@ -118,7 +126,7 @@ inline void point_translate_dir(point16_t *point, direction_e dir, uint8_t speed
         point->y -= speed;
 }
 
-inline void point_translate_dir_word(point16_t *point, direction_e dir, uint16_t speed) {
+inline void point_translate_dir_word(upoint16_t *point, direction_e dir, uint16_t speed) {
     if(dir == DIR_RIGHT)
         point->x += speed;
     else if(dir == DIR_LEFT)
@@ -129,7 +137,45 @@ inline void point_translate_dir_word(point16_t *point, direction_e dir, uint16_t
         point->y -= speed;
 }
 
-inline void point_translate_angle(point16_t *point, uint8_t angle, uint8_t speed) {
+inline void bb_translate_dir(bounding_box_16_t *bb, direction_e dir, uint8_t speed) {
+    if(dir == DIR_RIGHT) {
+        bb->left += speed;
+        bb->right += speed;
+    }
+    else if(dir == DIR_LEFT) {
+        bb->left -= speed;
+        bb->right -= speed;
+    }
+    else if(dir == DIR_DOWN) {
+        bb->top += speed;
+        bb->bottom += speed;
+    }
+    else if(dir == DIR_UP) {
+        bb->top -= speed;
+        bb->bottom -= speed;
+    }
+}
+
+inline void bb_translate_dir_word(bounding_box_16_t *bb, direction_e dir, uint16_t speed) {
+    if(dir == DIR_RIGHT) {
+        bb->left += speed;
+        bb->right += speed;
+    }
+    else if(dir == DIR_LEFT) {
+        bb->left -= speed;
+        bb->right -= speed;
+    }
+    else if(dir == DIR_DOWN) {
+        bb->top += speed;
+        bb->bottom += speed;
+    }
+    else if(dir == DIR_UP) {
+        bb->top -= speed;
+        bb->bottom -= speed;
+    }
+}
+
+inline void point_translate_angle(upoint16_t *point, uint8_t angle, uint8_t speed) {
     point->x += ((SIN(angle) * (speed)) >> 7);
     point->y -= ((COS(angle) * (speed)) >> 7);
 }

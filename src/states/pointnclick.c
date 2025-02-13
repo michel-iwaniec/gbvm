@@ -10,6 +10,7 @@
 #include "input.h"
 #include "trigger.h"
 #include "vm.h"
+#include "math.h"
 
 #ifndef POINT_N_CLICK_CAMERA_DEADZONE
 #define POINT_N_CLICK_CAMERA_DEADZONE 24
@@ -18,10 +19,10 @@
 UBYTE last_hit_trigger = MAX_TRIGGERS;
 
 void pointnclick_init(void) BANKED {
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = POINT_N_CLICK_CAMERA_DEADZONE;
-    camera_deadzone_y = POINT_N_CLICK_CAMERA_DEADZONE;
+    camera_offset_x_sp = PX_TO_SUBPX(0);
+    camera_offset_y_sp = PX_TO_SUBPX(0);
+    camera_deadzone_x_sp = PX_TO_SUBPX(POINT_N_CLICK_CAMERA_DEADZONE);
+    camera_deadzone_y_sp = PX_TO_SUBPX(POINT_N_CLICK_CAMERA_DEADZONE);
     PLAYER.dir = DIR_RIGHT;
     actor_set_anim(&PLAYER, ANIM_CURSOR);
 }
@@ -75,11 +76,12 @@ void pointnclick_update(void) BANKED {
             PLAYER.pos.y = -PX_TO_SUBPX(PLAYER.bounds.top);
         } else if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom > image_height) {
             PLAYER.pos.y = PX_TO_SUBPX(image_height - PLAYER.bounds.bottom);
-        }             
+        }
+        actor_update_bounds_sp(&PLAYER);
     }
 
     // Check for trigger collisions
-    hit_trigger = trigger_at_intersection(&PLAYER.bounds, &PLAYER.pos);
+    hit_trigger = trigger_at_intersection(&PLAYER.bounds_sp);
 
     // Check for actor collisions
     hit_actor = actor_overlapping_player(FALSE);

@@ -11,13 +11,13 @@ extern WORD pl_vel_y;
 extern WORD plat_min_vel;
 extern WORD plat_walk_vel;
 extern WORD plat_run_vel;
-extern WORD plat_climb_vel;
+extern UWORD plat_climb_vel;
 extern WORD plat_walk_acc;
-extern WORD plat_run_acc;
-extern WORD plat_dec;
-extern WORD plat_jump_vel;
-extern WORD plat_grav;
-extern WORD plat_hold_grav;
+extern UWORD plat_run_acc;
+extern UWORD plat_dec;
+extern UWORD plat_jump_vel;
+extern UWORD plat_grav;
+extern UWORD plat_hold_grav;
 extern WORD plat_max_fall_vel;
 
 #endif
