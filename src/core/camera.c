@@ -7,20 +7,20 @@
 #define CAMERA_FIXED_OFFSET_X 128
 #define CAMERA_FIXED_OFFSET_Y 128
 
-INT16 camera_x;
-INT16 camera_y;
-INT16 camera_clamp_x;
-INT16 camera_clamp_y;
-BYTE camera_offset_x;
-BYTE camera_offset_y;
-BYTE camera_deadzone_x;
-BYTE camera_deadzone_y;
+UINT16 camera_x;
+UINT16 camera_y;
+UINT16 camera_clamp_x;
+UINT16 camera_clamp_y;
+INT16 camera_offset_x_subpx;
+INT16 camera_offset_y_subpx;
+INT16 camera_deadzone_x_subpx;
+INT16 camera_deadzone_y_subpx;
 UBYTE camera_settings;
 
 void camera_init(void) BANKED {
     camera_settings = CAMERA_LOCK_FLAG;
     camera_x = camera_y = 0;
-    camera_offset_x = camera_offset_y = 0;
+    camera_offset_x_subpx = camera_offset_y_subpx = 0;
     camera_clamp_x = camera_clamp_y = 0;
     camera_reset();
 }
@@ -28,9 +28,9 @@ void camera_init(void) BANKED {
 void camera_update(void) BANKED {
     if (camera_settings & CAMERA_LOCK_X_FLAG)
     {
-        WORD target_pos = PLAYER.pos.x + CAMERA_FIXED_OFFSET_X;
-        WORD tolerance = PX_TO_SUBPX(camera_deadzone_x + camera_offset_x);
-        WORD new_cam_pos = camera_x;
+        UWORD target_pos = PLAYER.pos.x + CAMERA_FIXED_OFFSET_X;
+        WORD tolerance = camera_deadzone_x_subpx + camera_offset_x_subpx;
+        UWORD new_cam_pos = camera_x;
 
         if (new_cam_pos < target_pos - tolerance)
         {
@@ -53,9 +53,9 @@ void camera_update(void) BANKED {
 
     if (camera_settings & CAMERA_LOCK_Y_FLAG)
     {
-        WORD target_pos = PLAYER.pos.y + CAMERA_FIXED_OFFSET_Y;
-        WORD tolerance = PX_TO_SUBPX(camera_deadzone_y + camera_offset_y);
-        WORD new_cam_pos = camera_y;
+        UWORD target_pos = PLAYER.pos.y + CAMERA_FIXED_OFFSET_Y;
+        WORD tolerance = camera_deadzone_y_subpx + camera_offset_y_subpx;
+        UWORD new_cam_pos = camera_y;
 
         if (new_cam_pos < target_pos - tolerance)
         {

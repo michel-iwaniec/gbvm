@@ -31,13 +31,13 @@ BANKREF(VM_ACTOR)
 
 typedef struct act_move_to_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
     UBYTE ATTR;
 } act_move_to_t;
 
 typedef struct act_set_pos_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
 } act_set_pos_t;
 
 typedef struct act_set_frame_t {

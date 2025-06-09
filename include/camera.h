@@ -3,6 +3,8 @@
 
 #include <gbdk/platform.h>
 
+#include "math.h"
+
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
 #define SCREEN_WIDTH_HALF 80
@@ -17,20 +19,21 @@
 #define CAMERA_LOCK_Y_MAX_FLAG 0x20
 #define CAMERA_LOCK_FLAG (CAMERA_LOCK_X_FLAG | CAMERA_LOCK_Y_FLAG)
 
-extern INT16 camera_x;
-extern INT16 camera_y;
-extern INT16 camera_clamp_x;
-extern INT16 camera_clamp_y;
-extern BYTE camera_offset_x;
-extern BYTE camera_offset_y;
-extern BYTE camera_deadzone_x;
-extern BYTE camera_deadzone_y;
+extern UINT16 camera_x;
+extern UINT16 camera_y;
+extern UINT16 camera_clamp_x;
+extern UINT16 camera_clamp_y;
+extern INT16 camera_offset_x_subpx;
+extern INT16 camera_offset_y_subpx;
+extern INT16 camera_deadzone_x_subpx;
+extern INT16 camera_deadzone_y_subpx;
 extern UBYTE camera_settings;
 
 void camera_init(void) BANKED;
 
 inline void camera_reset(void) {
-    camera_deadzone_x = camera_deadzone_y = 0;
+    camera_deadzone_x_subpx = camera_deadzone_y_subpx = PX_TO_SUBPX(0);
+    camera_x = camera_y = 0;
 }
 
 void camera_update(void) BANKED;

@@ -5,10 +5,11 @@
 
 #include "camera.h"
 #include "game_time.h"
+#include "math.h"
 
 void logo_init(void) BANKED {
-  camera_offset_x = 0;
-  camera_offset_y = 0;
+  camera_offset_x_subpx = PX_TO_SUBPX(0);
+  camera_offset_y_subpx = PX_TO_SUBPX(0);
 
   game_time = 0;
 }

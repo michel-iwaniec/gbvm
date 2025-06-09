@@ -65,7 +65,7 @@ void projectiles_update(void) NONBANKED {
         projectile->pos.y -= projectile->delta_pos.y;
 
         if (IS_FRAME_EVEN) {
-            actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
+            actor_t *hit_actor = actor_overlapping_bb(&projectile->bounds, &projectile->pos, NULL, FALSE);
             if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
                 // Hit! - Fire collision script here
                 if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
@@ -149,10 +149,14 @@ void projectiles_render(void) NONBANKED {
     SWITCH_ROM(_save_bank);
 }
 
-void projectile_launch(UBYTE index, point16_t *pos, UBYTE angle) BANKED {
+void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
     projectile_t *projectile = projectiles_inactive_head;
     if (projectile) {
         memcpy(&projectile->def, &projectile_defs[index], sizeof(projectile_def_t));
+        projectile->bounds.left = PX_TO_SUBPX(projectile->def.bounds.left);
+        projectile->bounds.right = PX_TO_SUBPX(projectile->def.bounds.right);
+        projectile->bounds.top = PX_TO_SUBPX(projectile->def.bounds.top);
+        projectile->bounds.bottom = PX_TO_SUBPX(projectile->def.bounds.bottom);
 
         // Set correct projectile frames based on angle
         UBYTE dir = DIR_UP;

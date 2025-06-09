@@ -71,6 +71,28 @@
 
 #define N_DIRECTIONS    4
 
+// #define FIXED_POINT_FORMAT_11_5
+
+#ifdef FIXED_POINT_FORMAT_11_5
+// 11.5 fixed-point format
+#define SUBPX_TO_PX(a)      ((a) >> 5)
+#define SUBPX_TO_TILE(a)    ((a) >> 8)
+#define SUBPX_TO_TILE16(a)  ((a) >> 9)
+
+#define PX_TO_SUBPX(a)      ((a) << 5)
+#define TILE_TO_SUBPX(a)    ((a) << 8)
+#define TILE16_TO_SUBPX(a)  ((a) << 9)
+
+#define PX_TO_TILE(a)       ((a) >> 3)
+#define PX_TO_TILE16(a)     ((a) >> 4)
+#define TILE_TO_PX(a)       ((a) << 3)
+#define TILE16_TO_PX(a)     ((a) << 4)
+
+#define SUBPX_SNAP_PX(a)     ((a) & 0xFFE0)
+#define SUBPX_SNAP_TILE(a)   ((a) & 0xFF00)
+#define SUBPX_SNAP_TILE16(a) ((a) & 0xFE00)
+#else
+// 12.4 fixed-point format
 #define SUBPX_TO_PX(a)      ((a) >> 4)
 #define SUBPX_TO_TILE(a)    ((a) >> 7)
 #define SUBPX_TO_TILE16(a)  ((a) >> 8)
@@ -87,6 +109,7 @@
 #define SUBPX_SNAP_PX(a)     ((a) & 0xFFF0)
 #define SUBPX_SNAP_TILE(a)   ((a) & 0xFF80)
 #define SUBPX_SNAP_TILE16(a) ((a) & 0xFF00)
+#endif
 
 typedef struct upoint16_t {
     uint16_t x, y;
@@ -100,6 +123,14 @@ typedef struct point8_t {
     int8_t x, y;
 } point8_t;
 
+typedef struct bounding_box_t {
+    int8_t left, right, top, bottom;
+} bounding_box_t;
+
+typedef struct bounding_box_16_t {
+    int16_t left, right, top, bottom;
+} bounding_box_16_t;
+
 typedef enum {
     DIR_DOWN = 0,
     DIR_RIGHT,
@@ -111,7 +142,7 @@ typedef enum {
 extern const int8_t sine_wave[256];
 extern const uint8_t dir_angle_lookup[4];
 
-inline void point_translate_dir(point16_t *point, direction_e dir, uint8_t speed) {
+inline void point_translate_dir(upoint16_t *point, direction_e dir, uint8_t speed) {
     if(dir == DIR_RIGHT)
         point->x += speed;
     else if(dir == DIR_LEFT)
@@ -122,7 +153,7 @@ inline void point_translate_dir(point16_t *point, direction_e dir, uint8_t speed
         point->y -= speed;
 }
 
-inline void point_translate_dir_word(point16_t *point, direction_e dir, uint16_t speed) {
+inline void point_translate_dir_word(upoint16_t *point, direction_e dir, uint16_t speed) {
     if(dir == DIR_RIGHT)
         point->x += speed;
     else if(dir == DIR_LEFT)
@@ -133,7 +164,7 @@ inline void point_translate_dir_word(point16_t *point, direction_e dir, uint16_t
         point->y -= speed;
 }
 
-inline void point_translate_angle(point16_t *point, uint8_t angle, uint8_t speed) {
+inline void point_translate_angle(upoint16_t *point, uint8_t angle, uint8_t speed) {
     point->x += ((SIN(angle) * (speed)) >> 7);
     point->y -= ((COS(angle) * (speed)) >> 7);
 }

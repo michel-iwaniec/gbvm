@@ -35,6 +35,8 @@ UBYTE image_tile_width;
 UBYTE image_tile_height;
 UINT16 image_width;
 UINT16 image_height;
+UINT16 image_width_subpx;
+UINT16 image_height_subpx;
 UBYTE sprites_len;
 UBYTE actors_len;
 UBYTE projectiles_len;
@@ -63,9 +65,13 @@ void load_actor_from_def(actor_t* actor, actor_def_t* actor_def) BANKED {
     actor->anim_noloop = actor_def->anim_noloop;
     actor->collision_enabled = actor_def->collision_enabled;
     actor->persistent = actor_def->persistent;
-    actor->pos = actor_def->pos;
+    actor->pos.x = (uint16_t)actor_def->pos.x;
+    actor->pos.y = (uint16_t)actor_def->pos.y;
     actor->dir = actor_def->dir;
-    actor->bounds = actor_def->bounds;
+    actor->bounds.left = PX_TO_SUBPX(actor_def->bounds.left);
+    actor->bounds.right = PX_TO_SUBPX(actor_def->bounds.right);
+    actor->bounds.top = PX_TO_SUBPX(actor_def->bounds.top);
+    actor->bounds.bottom = PX_TO_SUBPX(actor_def->bounds.bottom);
     actor->anim_tick = actor_def->anim_tick;
     actor->move_speed = actor_def->move_speed;
     actor->reserve_tiles = actor_def->reserve_tiles;
@@ -125,8 +131,10 @@ void load_background(const background_t* background, UBYTE bank) BANKED {
     image_tile_width = bkg.width;
     image_tile_height = bkg.height;
     image_width = image_tile_width * 8;
+    image_width_subpx = PX_TO_SUBPX(image_width);
     scroll_x_max = image_width - ((UINT16)SCREENWIDTH);
     image_height = image_tile_height * 8;
+    image_height_subpx = PX_TO_SUBPX(image_height);
     scroll_y_max = image_height - ((UINT16)SCREENHEIGHT);
 
     load_bkg_tileset(bkg.tileset.ptr, bkg.tileset.bank);
@@ -170,8 +178,14 @@ void load_animations(const spritesheet_t *sprite, UBYTE bank, UWORD animation_se
     SWITCH_ROM(_save);
 }
 
-void load_bounds(const spritesheet_t *sprite, UBYTE bank, bounding_box_t * res_bounds) BANKED {
-    MemcpyBanked(res_bounds, &sprite->bounds, sizeof(sprite->bounds), bank);
+void load_bounds(const spritesheet_t *sprite, UBYTE bank, bounding_box_16_t * res_bounds) NONBANKED {
+    UBYTE _save = CURRENT_BANK;
+    SWITCH_ROM(bank);
+    res_bounds->left = PX_TO_SUBPX(sprite->bounds.left);
+    res_bounds->right = PX_TO_SUBPX(sprite->bounds.right);
+    res_bounds->top = PX_TO_SUBPX(sprite->bounds.top);
+    res_bounds->bottom = PX_TO_SUBPX(sprite->bounds.bottom);
+    SWITCH_ROM(_save);
 }
 
 UBYTE do_load_palette(palette_entry_t * dest, const palette_t * palette, UBYTE bank) BANKED {

@@ -41,7 +41,7 @@ typedef struct actor_def_t
     bool anim_noloop          : 1;
     bool collision_enabled    : 1;
     bool persistent           : 1;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
     bounding_box_t bounds;
     uint8_t anim_tick;
@@ -64,9 +64,9 @@ typedef struct actor_t
     bool collision_enabled    : 1;
     bool movement_interrupt   : 1;
     bool persistent           : 1;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
-    bounding_box_t bounds;
+    bounding_box_16_t bounds;
     uint8_t base_tile;
     uint8_t frame;
     uint8_t frame_start;
@@ -155,7 +155,8 @@ typedef struct projectile_def_t
 
 typedef struct projectile_t
 {
-    point16_t pos;
+    bounding_box_16_t bounds;
+    upoint16_t pos;
     point16_t delta_pos;
     uint8_t frame;
     uint8_t frame_start;
@@ -179,7 +180,7 @@ typedef struct font_desc_t {
 
 typedef struct scene_stack_item_t {
     far_ptr_t scene;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
 } scene_stack_item_t;
 

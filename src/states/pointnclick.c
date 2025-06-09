@@ -18,10 +18,10 @@
 UBYTE last_hit_trigger = MAX_TRIGGERS;
 
 void pointnclick_init(void) BANKED {
-    camera_offset_x = 0;
-    camera_offset_y = 0;
-    camera_deadzone_x = POINT_N_CLICK_CAMERA_DEADZONE;
-    camera_deadzone_y = POINT_N_CLICK_CAMERA_DEADZONE;
+    camera_offset_x_subpx = PX_TO_SUBPX(0);
+    camera_offset_y_subpx = PX_TO_SUBPX(0);
+    camera_deadzone_x_subpx = PX_TO_SUBPX(POINT_N_CLICK_CAMERA_DEADZONE);
+    camera_deadzone_y_subpx = PX_TO_SUBPX(POINT_N_CLICK_CAMERA_DEADZONE);
     PLAYER.dir = DIR_RIGHT;
     actor_set_anim(&PLAYER, ANIM_CURSOR);
 }
@@ -65,16 +65,16 @@ void pointnclick_update(void) BANKED {
     if (player_moving) {
         point_translate_angle(&(PLAYER.pos), angle, PLAYER.move_speed);
         // Clamp X
-        if (SUBPX_TO_PX(PLAYER.pos.x) - PLAYER.bounds.left > image_width) {
-            PLAYER.pos.x = PX_TO_SUBPX(PLAYER.bounds.left);
-        } else if (SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right > image_width) {
-            PLAYER.pos.x = PX_TO_SUBPX(image_width - PLAYER.bounds.right);
+        if (PLAYER.pos.x - PLAYER.bounds.left > image_width_subpx) {
+            PLAYER.pos.x = PLAYER.bounds.left;
+        } else if (PLAYER.pos.x + PLAYER.bounds.right > image_width_subpx) {
+            PLAYER.pos.x = image_width_subpx - PLAYER.bounds.right;
         }
         // Clamp Y
-        if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top > image_height) {
-            PLAYER.pos.y = -PX_TO_SUBPX(PLAYER.bounds.top);
-        } else if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom > image_height) {
-            PLAYER.pos.y = PX_TO_SUBPX(image_height - PLAYER.bounds.bottom);
+        if (PLAYER.pos.y + PLAYER.bounds.top > image_height_subpx) {
+            PLAYER.pos.y = -PLAYER.bounds.top;
+        } else if (PLAYER.pos.y + PLAYER.bounds.bottom > image_height_subpx) {
+            PLAYER.pos.y = image_height_subpx - PLAYER.bounds.bottom;
         }             
     }
 
