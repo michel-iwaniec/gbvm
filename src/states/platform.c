@@ -1188,7 +1188,9 @@ void platform_update(void) BANKED
             else if (tile_at(tile_x_mid, SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) &
                      COLLISION_TOP)
             {
-                plat_next_state = FALL_STATE;
+                plat_next_state = GROUND_STATE;
+                PLAYER.pos.y = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) - PLAYER.bounds.bottom - 1;
+                break;
             }
         }
         else if (INPUT_DOWN)
@@ -1204,7 +1206,9 @@ void platform_update(void) BANKED
             // If reached bottom of ladder then let go
             else if (tile & COLLISION_TOP)
             {
-                plat_next_state = FALL_STATE;
+                plat_next_state = GROUND_STATE;
+                PLAYER.pos.y = TILE_TO_SUBPX(tile_y) - PLAYER.bounds.bottom - 1;
+                break;
             }
 #ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
             else
