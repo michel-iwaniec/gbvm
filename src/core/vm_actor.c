@@ -88,6 +88,14 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             params->Y = SUBPX_SNAP_TILE(params->Y + actor->pos.y);
         }
 
+       // Prevent overflowing off left/top of screen
+        if (!(actor->pos.x&0x8000) && (params->X&0x8000)) {
+            params->X = 0;
+        }
+        if (!(actor->pos.y&0x8000) && (params->Y&0x8000)) {
+            params->Y = 0;
+        }
+
         // Check for collisions in path
         if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL)) {
             if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
