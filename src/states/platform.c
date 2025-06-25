@@ -290,8 +290,6 @@ WORD plat_mp_last_y;       // Keeps track of the pos.y of the attached actor fro
 
 // JUMPING VARIABLES
 WORD plat_jump_reduction_val; // Holds a temporary jump velocity reduction
-WORD plat_jump_per_frame;     // Holds a jump amount that has been normalized over the
-                              // number of jump frames
 WORD plat_jump_reduction;     // Holds the reduction amount that has been normalized
                               // over the number of jump frames
 WORD plat_boost_val;
@@ -375,13 +373,6 @@ void platform_init(void) BANKED
         plat_edge_right = &image_width;
     }
 
-    // Make sure jumping doesn't overflow variables
-    // First, check for jumping based on Frames and Initial Jump Min
-    while (32000 - (plat_jump_vel / MIN(15, plat_hold_jump_max)) - plat_jump_min < 0)
-    {
-        plat_hold_jump_max += 1;
-    }
-
     // This ensures that, by itself, the plat run boost active on any single
     // frame cannot overflow a WORD. It is complemented by another check in the
     // jump itself that works with the actual velocity.
@@ -394,10 +385,6 @@ void platform_init(void) BANKED
     }
 
     // Normalize variables by number of frames
-    plat_jump_per_frame = plat_jump_vel / MIN(15, plat_hold_jump_max); // jump force applied per
-                                                                       // frame in the JUMP_STATE
-    plat_jump_reduction = plat_jump_reduction / plat_hold_jump_max;    // Amount to reduce subequent jumps
-                                                                       // per frame in JUMP_STATE
 #ifdef FEAT_PLATFORM_DASH
     plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 #endif
@@ -680,7 +667,7 @@ void platform_update(void) BANKED
         }
         else
 #endif
-            if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
+        if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
         {
             // Gravity while holding jump
             plat_vel_y += plat_hold_grav;
@@ -772,6 +759,7 @@ void platform_update(void) BANKED
                 {
                     plat_dj_val -= 1;
                 }
+                plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
                 plat_jump_reduction_val += plat_jump_reduction;
                 plat_next_state = JUMP_STATE;
                 break;
@@ -948,9 +936,9 @@ void platform_update(void) BANKED
         if (plat_hold_jump_val != 0 && INPUT_PLATFORM_JUMP)
         {
             // Add the boost per frame amount.
-            plat_vel_y -= plat_jump_per_frame;
+            plat_vel_y -= plat_jump_vel;
             // Reduce subsequent jump amounts (for double jumps)
-            if (plat_jump_vel >= plat_jump_reduction_val)
+            if (plat_vel_y < -plat_jump_reduction_val)
             {
                 plat_vel_y += plat_jump_reduction_val;
             }
@@ -1059,7 +1047,7 @@ void platform_update(void) BANKED
 #endif
 #endif
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
-                if (plat_dj_val != 0)
+            if (plat_dj_val != 0)
             {
                 // Double Jump
                 plat_jump_type = JUMP_TYPE_DOUBLE;
@@ -1067,6 +1055,7 @@ void platform_update(void) BANKED
                 {
                     plat_dj_val -= 1;
                 }
+                plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
                 plat_jump_reduction_val += plat_jump_reduction;
                 plat_next_state = JUMP_STATE;
             }
