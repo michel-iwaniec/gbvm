@@ -349,11 +349,6 @@ void platform_init(void) BANKED
         plat_edge_right = &image_width;
     }
 
-    // Normalize variables by number of frames
-#ifdef FEAT_PLATFORM_DASH
-    plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
-#endif
-
     // Initialize State
     plat_state = GROUND_STATE;
     plat_next_state = GROUND_STATE;
@@ -1539,7 +1534,7 @@ void dash_init(void) BANKED
         new_x = PLAYER.pos.x + (-plat_dash_per_frame * plat_dash_frames);
     }
 
-    // Dash through walls
+    // Dash through walls - check if destination is clear
     if ((plat_dash_mask & COL_CHECK_WALLS) == 0)
     {
         if (plat_dash_use_grav)
@@ -1549,74 +1544,20 @@ void dash_init(void) BANKED
         }
 
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom);
 
-        // Do a collision check at the final landing spot (but not all the steps
-        // in-between.)
-        if (PLAYER.dir == DIR_RIGHT)
-        {
-            // Don't dash off the screen to the right
-            if (PLAYER.pos.x + PLAYER.bounds.right + (plat_dash_per_frame * (plat_dash_frames)) >
-                (image_width_subpx - PX_TO_SUBPX(16)))
-            {
-                plat_next_state = FALL_STATE;
-                return;
-            }
-            else
-            {
-                UBYTE tile_xr = SUBPX_TO_TILE(new_x + PLAYER.bounds.right) + 1;
-                UBYTE tile_xl = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
-                while (tile_xl != tile_xr)
-                { // This checks all the tiles between the left
-                  // bounds and the right bounds
-                    while (tile_start != tile_end)
-                    { // This checks all the tiles that the
-                      // character occupies in height
-                        if (tile_at(tile_xl, tile_start) & COLLISION_ALL)
-                        {
-                            plat_next_state = FALL_STATE;
-                            return;
-                        }
-                        tile_start++;
-                    }
-                    tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top); // Reset the height after each loop
-                    tile_xl++;
-                }
-            }
+        UBYTE tile_xl = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
+        UBYTE tile_xr = SUBPX_TO_TILE(new_x + PLAYER.bounds.right);
+        UBYTE col = tile_col_test_range_x(COLLISION_ALL, tile_start, tile_xl, tile_xr);
+        if (!col) {
+            col = tile_col_test_range_x(COLLISION_ALL, tile_end, tile_xl, tile_xr);
         }
-        else if (PLAYER.dir == DIR_LEFT)
-        {
-            // Don't dash off the screen to the left
-            if (PLAYER.pos.x <=
-                ((plat_dash_per_frame * plat_dash_frames) + PLAYER.bounds.left) + PX_TO_SUBPX(8))
-            {
-                // To get around unsigned position, test if the player's
-                // current position is less than the total dist.
-                plat_next_state = FALL_STATE;
-                return;
-            }
-            else
-            {
-                UBYTE tile_xl = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
-                UBYTE tile_xr = SUBPX_TO_TILE(new_x + PLAYER.bounds.right) + 1;
-
-                while (tile_xl != tile_xr)
-                {
-                    while (tile_start != tile_end)
-                    {
-                        if (tile_at(tile_xl, tile_start) & COLLISION_ALL)
-                        {
-                            plat_next_state = FALL_STATE;
-                            return;
-                        }
-                        tile_start++;
-                    }
-                    tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-                    tile_xl++;
-                }
-            }
+        if (col) {
+            plat_next_state = FALL_STATE;
+            return;                
         }
     }
+
     plat_actor_attached = FALSE;
     camera_deadzone_x = plat_dash_deadzone;
     plat_dash_ready_val = plat_dash_ready_max + plat_dash_frames;
