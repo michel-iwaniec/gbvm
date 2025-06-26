@@ -2027,10 +2027,10 @@ finally_check_actor_col:
                     plat_actor_attached = FALSE;
                     plat_next_state = FALL_STATE;
                 }
-                else if ((plat_temp_y + PLAYER.bounds.bottom - PX_TO_SUBPX(7)) <
-                             (hit_actor->pos.y + hit_actor->bounds.top) &&
-                         (plat_vel_y >= 0))
-                {
+                else if (
+                    ((plat_temp_y + PLAYER.bounds.bottom - PX_TO_SUBPX(3)) < (hit_actor->pos.y + hit_actor->bounds.top))
+                        && (plat_vel_y >= 0)
+                ) {
                     // Attach to actor (solid or platform)
                     plat_last_actor = hit_actor;
                     plat_mp_last_x = hit_actor->pos.x;
