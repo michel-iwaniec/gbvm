@@ -35,7 +35,7 @@ void camera_update(void) BANKED {
         if (new_cam_pos < target_pos - tolerance)
         {
             new_cam_pos = target_pos - tolerance;
-            if ((camera_settings & CAMERA_LOCK_X_MAX_FLAG) && new_cam_pos < camera_clamp_x)
+            if ((camera_settings & CAMERA_LOCK_X_MAX_FLAG) && new_cam_pos > camera_clamp_x)
             {
                 new_cam_pos = camera_clamp_x;
             }
@@ -60,7 +60,7 @@ void camera_update(void) BANKED {
         if (new_cam_pos < target_pos - tolerance)
         {
             new_cam_pos = target_pos - tolerance;
-            if ((camera_settings & CAMERA_LOCK_Y_MAX_FLAG) && new_cam_pos < camera_clamp_y)
+            if ((camera_settings & CAMERA_LOCK_Y_MAX_FLAG) && new_cam_pos > camera_clamp_y)
             {
                 new_cam_pos = camera_clamp_y;
             }
