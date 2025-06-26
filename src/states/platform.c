@@ -707,7 +707,7 @@ void platform_update(void) BANKED
             if (plat_wc_val != 0 && plat_wj_val != 0)
             {
                 plat_jump_type = JUMP_TYPE_WALL;
-                plat_wj_val -= 1;
+                plat_wj_val--;
                 plat_nocontrol_h = WALL_JUMP_NO_CONTROL_H_FRAMES;
                 plat_vel_x += (plat_wall_kick + plat_walk_vel) * -plat_last_wall;
                 plat_next_state = JUMP_STATE;
@@ -730,7 +730,7 @@ void platform_update(void) BANKED
                 plat_jump_type = JUMP_TYPE_DOUBLE;
                 if (plat_dj_val != UNLIMITED_JUMPS)
                 {
-                    plat_dj_val -= 1;
+                    plat_dj_val--;
                 }
                 plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
                 plat_jump_reduction_val += plat_jump_reduction;
@@ -998,7 +998,7 @@ void platform_update(void) BANKED
             if (plat_wc_val != 0 && plat_wj_val != 0)
             {
                 plat_jump_type = JUMP_TYPE_WALL;
-                plat_wj_val -= 1;
+                plat_wj_val--;
                 plat_nocontrol_h = WALL_JUMP_NO_CONTROL_H_FRAMES;
                 plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall;
                 plat_next_state = JUMP_STATE;
@@ -1014,7 +1014,7 @@ void platform_update(void) BANKED
                 plat_jump_type = JUMP_TYPE_DOUBLE;
                 if (plat_dj_val != UNLIMITED_JUMPS)
                 {
-                    plat_dj_val -= 1;
+                    plat_dj_val--;
                 }
                 plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
                 plat_jump_reduction_val += plat_jump_reduction;
@@ -1055,7 +1055,7 @@ void platform_update(void) BANKED
             remaining_dash_dist -= dist;
         }
 
-        plat_dash_currentframe -= 1;
+        plat_dash_currentframe--;
         if (plat_dash_currentframe == 0)
         {
             plat_next_state = FALL_STATE;
@@ -1353,7 +1353,7 @@ void platform_update(void) BANKED
         if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jb_val != 0) && plat_wj_val != 0)
         {
             // Wall Jump
-            plat_wj_val -= 1;
+            plat_wj_val--;
             plat_nocontrol_h = WALL_JUMP_NO_CONTROL_H_FRAMES;
             plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall;
             plat_jump_type = JUMP_TYPE_WALL;
@@ -1432,7 +1432,7 @@ void platform_update(void) BANKED
     // Hone Camera after the player has dashed
     if ((plat_state != DASH_STATE) && (camera_deadzone_x > plat_camera_deadzone_x))
     {
-        camera_deadzone_x -= 1;
+        camera_deadzone_x--;
     }
 }
 
