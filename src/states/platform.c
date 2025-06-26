@@ -1435,7 +1435,7 @@ void platform_update(void) BANKED
     }
 
     // Hone Camera after the player has dashed
-    if (camera_deadzone_x > plat_camera_deadzone_x)
+    if ((plat_state != DASH_STATE) && (camera_deadzone_x > plat_camera_deadzone_x))
     {
         camera_deadzone_x -= 1;
     }
