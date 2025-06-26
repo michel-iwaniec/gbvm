@@ -1041,7 +1041,7 @@ void platform_update(void) BANKED
         WORD remaining_dash_dist = plat_dash_per_frame;
 
         plat_vel_x = plat_run_vel * dir;
-        plat_delta_y = plat_dash_use_grav ? VEL_TO_SUBPX(plat_grav) : -1;
+        plat_delta_y = plat_dash_use_grav ? VEL_TO_SUBPX(plat_grav) : 0;
 
         while (remaining_dash_dist)
         {
