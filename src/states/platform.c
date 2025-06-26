@@ -214,6 +214,7 @@ WORD plat_run_boost;         // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
                              // double-tap, interact, or down and interact
 UBYTE plat_dash_from;        // Ground, air, ladders flags
+UBYTE plat_dash_jump_from;   // Allow jumping from dash state
 UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
                              // triggers, and walls
 WORD plat_dash_dist;         // Distance of the dash
@@ -449,6 +450,7 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
+            plat_grounded = FALSE;
             plat_actor_attached = FALSE;
             plat_callback_execute(FALL_INIT);
             break;
@@ -458,6 +460,7 @@ void platform_update(void) BANKED
             // many of the jump effects depend on testing
             // INPUT_PLATFORM_JUMP But if the player switches to this state
             // without pressing jump, then these won't fire...
+            plat_grounded = FALSE;
             plat_hold_jump_val = plat_hold_jump_max;
             plat_actor_attached = FALSE;
             plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
@@ -1061,13 +1064,28 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_JUMP
         // DASH -> JUMP Check
-        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jb_val != 0) &&
-            (plat_grounded || plat_dj_val != 0 || plat_ct_val != 0) && !plat_drop_frames)
-        {
-            // Standard Jump
-            plat_jump_type = JUMP_TYPE_GROUND;
-            plat_next_state = JUMP_STATE;
-            break;
+        if (
+            // Jump pressed or was buffered + Not falling through a platform
+            (INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jb_val != 0) && !plat_drop_frames
+        ) {
+            // Check if grounded
+            UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+            UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left + p_half_width);
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+            plat_grounded = tile_at(tile_x_mid, tile_y) & (COLLISION_TOP | COLLISION_SLOPE);
+
+            if (
+                // Can dash from ground and is grounded (or coyote time)
+                ((plat_dash_jump_from & DASH_FROM_GROUND) && plat_grounded)
+                ||
+                // Or can dash from air and is not grounded
+                ((plat_dash_jump_from & DASH_FROM_AIR) && !plat_grounded)
+            ) {
+                // Standard Jump
+                plat_jump_type = JUMP_TYPE_GROUND;
+                plat_next_state = JUMP_STATE;
+                break;
+            }
         }
         plat_jb_val = 0;
 #endif
