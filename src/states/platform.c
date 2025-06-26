@@ -1917,7 +1917,6 @@ void move_and_collide(UBYTE mask) BANKED
                 {
                     // If we are moving up a slope, check for top collision
                     UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + PLAYER.bounds.top);
-                    UBYTE tile_x_i = tile_x_start;
 
                     plat_slope_y = tile_hit_y;
                     plat_on_slope = tile;
