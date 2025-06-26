@@ -253,8 +253,6 @@ WORD plat_dash_per_frame;     // Takes overall dash distance and holds the amoun
 UBYTE plat_dash_currentframe; // Tracks the current frame of the overall dash
 BYTE plat_tap_val;            // Number of frames since the last time left or right button was
                               // tapped
-UBYTE plat_dash_end_clear;    // Used to store the result of whether the end-position
-                              // of a dash is empty
 
 // COLLISION VARS
 actor_t *plat_last_actor;  // The last actor the player hit, and that they were
@@ -378,7 +376,6 @@ void platform_init(void) BANKED
     plat_dj_val = plat_extra_jumps;
 #endif
     plat_wj_val = plat_wall_jump_max;
-    plat_dash_end_clear = FALSE; // could also be mixed into the collision bitmask
     plat_jump_type = JUMP_TYPE_NONE;
     plat_delta_x = 0;
     plat_delta_y = 0;
@@ -527,6 +524,10 @@ void platform_update(void) BANKED
             plat_dj_val = plat_extra_jumps;
 #endif
             dash_init();
+            if (plat_next_state != DASH_STATE) {
+                // Break out if dash not allowed
+                return;
+            }
             plat_callback_execute(DASH_INIT);
             break;
         }
@@ -1041,13 +1042,6 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_DASH
     case DASH_STATE: {
-
-        if (!plat_dash_end_clear)
-        {
-            plat_next_state = FALL_STATE;
-            break;
-        }
-
         BYTE dir = (PLAYER.dir == DIR_LEFT ? -1 : 1);
         WORD remaining_dash_dist = plat_dash_per_frame;
 
@@ -1545,15 +1539,13 @@ void dash_init(void) BANKED
         new_x = PLAYER.pos.x + (-plat_dash_per_frame * plat_dash_frames);
     }
 
-    plat_dash_end_clear = true; // Assume that the landing spot is clear, and
-                                // disable if we collide below
-
     // Dash through walls
     if ((plat_dash_mask & COL_CHECK_WALLS) == 0)
     {
         if (plat_dash_use_grav)
         {
-            plat_dash_end_clear = false;
+            plat_next_state = FALL_STATE;
+            return;
         }
 
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
@@ -1567,7 +1559,8 @@ void dash_init(void) BANKED
             if (PLAYER.pos.x + PLAYER.bounds.right + (plat_dash_per_frame * (plat_dash_frames)) >
                 (image_width_subpx - PX_TO_SUBPX(16)))
             {
-                plat_dash_end_clear = false;
+                plat_next_state = FALL_STATE;
+                return;
             }
             else
             {
@@ -1581,9 +1574,8 @@ void dash_init(void) BANKED
                       // character occupies in height
                         if (tile_at(tile_xl, tile_start) & COLLISION_ALL)
                         {
-                            plat_dash_end_clear = false;
-                            goto initDash; // Gotos are still good for breaking
-                                           // embedded loops.
+                            plat_next_state = FALL_STATE;
+                            return;
                         }
                         tile_start++;
                     }
@@ -1598,9 +1590,10 @@ void dash_init(void) BANKED
             if (PLAYER.pos.x <=
                 ((plat_dash_per_frame * plat_dash_frames) + PLAYER.bounds.left) + PX_TO_SUBPX(8))
             {
-                plat_dash_end_clear = false; // To get around unsigned position, test if the
-                                             // player's current position is less than the total
-                                             // dist.
+                // To get around unsigned position, test if the player's
+                // current position is less than the total dist.
+                plat_next_state = FALL_STATE;
+                return;
             }
             else
             {
@@ -1613,8 +1606,8 @@ void dash_init(void) BANKED
                     {
                         if (tile_at(tile_xl, tile_start) & COLLISION_ALL)
                         {
-                            plat_dash_end_clear = false;
-                            goto initDash;
+                            plat_next_state = FALL_STATE;
+                            return;
                         }
                         tile_start++;
                     }
@@ -1624,7 +1617,6 @@ void dash_init(void) BANKED
             }
         }
     }
-initDash:
     plat_actor_attached = FALSE;
     camera_deadzone_x = plat_dash_deadzone;
     plat_dash_ready_val = plat_dash_ready_max + plat_dash_frames;
