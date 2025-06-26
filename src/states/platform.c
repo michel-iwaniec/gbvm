@@ -1425,13 +1425,8 @@ void platform_update(void) BANKED
 #endif
 
     // Counting down from the max double-tap time (left is -DOUBLE_TAP_WINDOW, right is +DOUBLE_TAP_WINDOW)
-    if (plat_tap_val > 0)
-    {
-        plat_tap_val -= 1;
-    }
-    else if (plat_tap_val < 0)
-    {
-        plat_tap_val += 1;
+    if (plat_tap_val != 0) {
+        plat_tap_val += IS_NEG(plat_tap_val) ? 1 : -1;
     }
 
     // Hone Camera after the player has dashed
