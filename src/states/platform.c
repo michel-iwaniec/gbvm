@@ -214,7 +214,6 @@ WORD plat_run_boost;         // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
                              // double-tap, interact, or down and interact
 UBYTE plat_dash_from;        // Ground, air, ladders flags
-UBYTE plat_dash_use_grav;    // Applies gravity during a dash
 UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
                              // triggers, and walls
 WORD plat_dash_dist;         // Distance of the dash
@@ -1041,7 +1040,9 @@ void platform_update(void) BANKED
         WORD remaining_dash_dist = plat_dash_per_frame;
 
         plat_vel_x = plat_run_vel * dir;
-        plat_delta_y = plat_dash_use_grav ? VEL_TO_SUBPX(plat_grav) : 0;
+#ifdef FEAT_PLATFORM_DASH_USE_GRAVITY
+        plat_delta_y = VEL_TO_SUBPX(plat_grav);
+#endif
 
         while (remaining_dash_dist)
         {
@@ -1509,7 +1510,6 @@ void ladder_check(void) BANKED
 #ifdef FEAT_PLATFORM_DASH
 void dash_init(void) BANKED
 {
-    UWORD new_x;
     // If the player is pressing a direction (but not facing a direction, ie on
     // a wall or on a changed frame)
     if (INPUT_RIGHT)
@@ -1523,25 +1523,21 @@ void dash_init(void) BANKED
 
     plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 
-    // Set new_x be the final destination of the dash (ie. the distance covered
-    // by all of the dash frames combined)
-    if (PLAYER.dir == DIR_RIGHT)
-    {
-        new_x = PLAYER.pos.x + (plat_dash_per_frame * plat_dash_frames);
-    }
-    else
-    {
-        new_x = PLAYER.pos.x + (-plat_dash_per_frame * plat_dash_frames);
-    }
+
 
     // Dash through walls - check if destination is clear
     if ((plat_dash_mask & COL_CHECK_WALLS) == 0)
     {
-        if (plat_dash_use_grav)
-        {
-            plat_next_state = FALL_STATE;
-            return;
-        }
+#ifdef FEAT_PLATFORM_DASH_USE_GRAVITY
+        plat_next_state = FALL_STATE;
+        return;
+#else
+        // Set new_x be the final destination of the dash (ie. the distance covered
+        // by all of the dash frames combined)
+        UWORD new_x = PLAYER.pos.x
+            + ((PLAYER.dir == DIR_RIGHT) ? plat_dash_per_frame : -plat_dash_per_frame)
+            * plat_dash_frames;
+
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
         UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom);
         UBYTE tile_xl = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
@@ -1552,17 +1548,17 @@ void dash_init(void) BANKED
         }
         if (col) {
             plat_next_state = FALL_STATE;
-            return;                
-        }
+            return;
+        }     
+#endif        
     }
 
     plat_actor_attached = FALSE;
     camera_deadzone_x = plat_dash_deadzone;
     plat_dash_ready_val = plat_dash_ready_max + plat_dash_frames;
-    if (!plat_dash_use_grav)
-    {
-        plat_vel_y = 0;
-    }
+#ifndef FEAT_PLATFORM_DASH_USE_GRAVITY
+    plat_vel_y = 0;
+#endif
     plat_dash_currentframe = plat_dash_frames;
     plat_tap_val = 0;
     plat_jump_type = JUMP_TYPE_NONE;
@@ -1978,8 +1974,7 @@ void move_and_collide(UBYTE mask) BANKED
                 // Hit the ceiling
                 new_y = TILE_TO_SUBPX(tile_hit_y + 1) - PLAYER.bounds.top + 1;
                 plat_vel_y = 0;
-                // MP Test: Attempting stuff to stop the player from continuing
-                // upward
+                // MP Test: Attempting stuff to stop the player from continuing upward
                 if (plat_actor_attached)
                 {
                     plat_temp_y = plat_last_actor->pos.y;
