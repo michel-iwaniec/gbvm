@@ -92,6 +92,15 @@
 #define SUBPX_TILE_REMAINDER(a) ((a) & 0xFF)
 #define PX_TILE_REMAINDER(a)    ((a) & 0x7)
 
+#define WORD_MIN            -32768
+#define WORD_MAX            32767
+#define UWORD_MIN           0
+#define UWORD_MAX           65535
+#define BYTE_MIN            -128
+#define BYTE_MAX            127
+#define UBYTE_MIN           0
+#define UBYTE_MAX           255
+
 typedef struct upoint16_t {
     uint16_t x, y;
 } upoint16_t;

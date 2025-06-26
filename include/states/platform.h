@@ -39,7 +39,7 @@ extern UBYTE plat_air_control;
 extern UBYTE plat_turn_control;
 extern WORD plat_air_dec;
 extern WORD plat_turn_acc;
-extern UBYTE plat_run_boost;
+extern WORD plat_run_boost;
 extern UBYTE plat_dash;
 extern WORD plat_dash_dist;
 extern UBYTE plat_dash_frames;

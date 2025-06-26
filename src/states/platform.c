@@ -232,7 +232,7 @@ UBYTE plat_turn_control;     // Controls the amount of slippage when the player
                              // turns while running.
 WORD plat_air_dec;           // air deceleration rate
 WORD plat_turn_acc;          // Speed with which a character turns
-UBYTE plat_run_boost;        // Additional jump height based on horizontal speed
+WORD plat_run_boost;         // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
                              // double-tap, interact, or down and interact
 UBYTE plat_dash_from;        // Ground, air, ladders flags
@@ -289,10 +289,10 @@ WORD plat_mp_last_y;       // Keeps track of the pos.y of the attached actor fro
                            // previous frame
 
 // JUMPING VARIABLES
+WORD plat_jump_boost_val;     // Holds the jump boost value for the current jump
 WORD plat_jump_reduction_val; // Holds a temporary jump velocity reduction
 WORD plat_jump_reduction;     // Holds the reduction amount that has been normalized
                               // over the number of jump frames
-WORD plat_boost_val;
 
 // WALKING AND RUNNING VARIABLES
 WORD plat_vel_x; // Tracks the player's x-velocity between frames
@@ -373,24 +373,10 @@ void platform_init(void) BANKED
         plat_edge_right = &image_width;
     }
 
-    // This ensures that, by itself, the plat run boost active on any single
-    // frame cannot overflow a WORD. It is complemented by another check in the
-    // jump itself that works with the actual velocity.
-    if (plat_run_boost != 0)
-    {
-        while ((32000 / plat_run_boost) < (VEL_TO_SUBPX(plat_run_vel) / plat_hold_jump_max))
-        {
-            plat_run_boost--;
-        }
-    }
-
     // Normalize variables by number of frames
 #ifdef FEAT_PLATFORM_DASH
     plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 #endif
-
-    plat_boost_val = plat_run_boost / plat_hold_jump_max; // Vertical boost from horizontal
-                                                          // speed per frame in JUMP STATE
 
     // Initialize State
     plat_state = GROUND_STATE;
@@ -411,7 +397,7 @@ void platform_init(void) BANKED
     plat_last_wall = WALL_COL_NONE; // This could be 1 bit
     plat_hold_jump_val = plat_hold_jump_max;
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
-    plat_dj_val = 0;
+    plat_dj_val = plat_extra_jumps;
 #endif
     plat_wj_val = plat_wall_jump_max;
     plat_dash_end_clear = FALSE; // could also be mixed into the collision bitmask
@@ -513,6 +499,17 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
             plat_wc_val = 0;
 #endif
+            // Calculate jump boost value based on horizontal velocity
+            plat_jump_boost_val = plat_jump_vel;
+            if (plat_run_boost != 0) {
+                UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
+#ifdef FEAT_PLATFORM_RUN                
+                UBYTE boost_ratio = abs_vel_x / (plat_run_vel >> 7);
+#else
+                UBYTE boost_ratio = abs_vel_x / (plat_walk_vel >> 7);
+#endif
+                plat_jump_boost_val += boost_ratio * (plat_run_boost >> 7);
+            }
             plat_callback_execute(JUMP_INIT);
             break;
         }
@@ -936,32 +933,20 @@ void platform_update(void) BANKED
         if (plat_hold_jump_val != 0 && INPUT_PLATFORM_JUMP)
         {
             // Add the boost per frame amount.
-            plat_vel_y -= plat_jump_vel;
+            plat_vel_y -= plat_jump_boost_val;
+
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
             // Reduce subsequent jump amounts (for double jumps)
-            if (plat_vel_y < -plat_jump_reduction_val)
-            {
-                plat_vel_y += plat_jump_reduction_val;
+            WORD reduced_vel_y = plat_vel_y + plat_jump_reduction_val;
+            plat_vel_y = MIN(reduced_vel_y, 0);
+#endif
+
+            // Handle jump velocity overflow 
+            if (plat_vel_y > 0) {
+                plat_vel_y = WORD_MIN;
             }
-            else
-            {
-                // When reducing that value, zero out if it's negative
-                plat_vel_y = 0;
-            }
-            // Add jump boost from horizontal movement
-            WORD tempBoost = VEL_TO_SUBPX(plat_vel_x) * plat_boost_val;
-            // Take the positive value of x-vel
-            tempBoost = MAX(tempBoost, -tempBoost);
-            // This is a test to see if the results will overflow plat_vel_y.
-            // Note, plat_vel_y is negative here.
-            if (tempBoost > 32767 + plat_vel_y)
-            {
-                plat_vel_y = -32767;
-            }
-            else
-            {
-                plat_vel_y += -tempBoost;
-            }
-            plat_hold_jump_val -= 1;
+ 
+            plat_hold_jump_val--;
         }
         else if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
         {
