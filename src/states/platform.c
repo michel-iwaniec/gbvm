@@ -259,9 +259,9 @@ actor_t *plat_last_actor;  // The last actor the player hit, and that they were
                            // attached to
 UBYTE plat_actor_attached; // Keeps track of whether the player is currently on an
                            // actor and inheriting its movement
-WORD plat_mp_last_x;       // Keeps track of the pos.x of the attached actor from the
+UWORD plat_mp_last_x;       // Keeps track of the pos.x of the attached actor from the
                            // previous frame
-WORD plat_mp_last_y;       // Keeps track of the pos.y of the attached actor from the
+UWORD plat_mp_last_y;       // Keeps track of the pos.y of the attached actor from the
                            // previous frame
 
 // JUMPING VARIABLES
