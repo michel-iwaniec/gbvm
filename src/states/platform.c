@@ -289,7 +289,7 @@ WORD plat_mp_last_y;       // Keeps track of the pos.y of the attached actor fro
                            // previous frame
 
 // JUMPING VARIABLES
-WORD plat_jump_boost_val;     // Holds the jump boost value for the current jump
+WORD plat_jump_vel_per_frame; // Holds the jump per frame value for the current jump
 WORD plat_jump_reduction_val; // Holds a temporary jump velocity reduction
 WORD plat_jump_reduction;     // Holds the reduction amount that has been normalized
                               // over the number of jump frames
@@ -499,8 +499,8 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
             plat_wc_val = 0;
 #endif
+            plat_jump_vel_per_frame = plat_jump_vel;
             // Calculate jump boost value based on horizontal velocity
-            plat_jump_boost_val = plat_jump_vel;
             if (plat_run_boost != 0) {
                 UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
 #ifdef FEAT_PLATFORM_RUN                
@@ -508,7 +508,7 @@ void platform_update(void) BANKED
 #else
                 UBYTE boost_ratio = abs_vel_x / (plat_walk_vel >> 7);
 #endif
-                plat_jump_boost_val += boost_ratio * (plat_run_boost >> 7);
+                plat_jump_vel_per_frame += boost_ratio * (plat_run_boost >> 7);
             }
             plat_callback_execute(JUMP_INIT);
             break;
@@ -933,7 +933,7 @@ void platform_update(void) BANKED
         if (plat_hold_jump_val != 0 && INPUT_PLATFORM_JUMP)
         {
             // Add the boost per frame amount.
-            plat_vel_y -= plat_jump_boost_val;
+            plat_vel_y -= plat_jump_vel_per_frame;
 
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
             // Reduce subsequent jump amounts (for double jumps)
