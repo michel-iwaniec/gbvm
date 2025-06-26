@@ -130,6 +130,14 @@
         if ((x) != 0)                                                                                                  \
             (x)--;                                                                                                     \
     } while (0)
+#define COUNTER_DECREMENT_CB(x, cond)                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if ((x) != 0) {                                                                                                \
+            (x)--;                                                                                                     \
+            if ((x) == 0) cond                                                                                         \
+        }                                                                                                              \
+    } while (0)
 #define COUNTER_DECREMENT_IF(x, cond)                                                                                  \
     do                                                                                                                 \
     {                                                                                                                  \
@@ -171,6 +179,7 @@ typedef enum
     KNOCKBACK_END,
     BLANK_INIT,
     BLANK_END,
+    DASH_READY,
     CALLBACK_SIZE
 } callback_e;
 
@@ -438,6 +447,18 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
             plat_callback_execute(WALL_END);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_KNOCKBACK
+        case KNOCKBACK_STATE: {
+            plat_callback_execute(KNOCKBACK_END);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_BLANK
+        case BLANK_STATE: {
+            plat_callback_execute(BLANK_END);
             break;
         }
 #endif
@@ -1421,7 +1442,9 @@ void platform_update(void) BANKED
     // COUNTERS================================================================
     //  Counting down until dashing is ready again
     //  XX Set in dash Init and checked in wall, fall, ground, and jump states
-    COUNTER_DECREMENT(plat_dash_ready_val);
+    COUNTER_DECREMENT_CB(plat_dash_ready_val, {
+        plat_callback_execute(DASH_READY);
+    });
 #endif
 
     // Counting down from the max double-tap time (left is -DOUBLE_TAP_WINDOW, right is +DOUBLE_TAP_WINDOW)
