@@ -777,10 +777,10 @@ void platform_update(void) BANKED
             // the ground
             plat_jb_val = plat_buffer_max;
         }
-        // NEUTRAL -> LADDER check
 #endif
 
 #ifdef FEAT_PLATFORM_LADDERS
+        // FALL -> LADDER Check
         ladder_check();
 #endif
 
