@@ -230,6 +230,9 @@ WORD plat_dash_dist;         // Distance of the dash
 UBYTE plat_dash_frames;      // Number of frames for dashing
 UBYTE plat_dash_ready_max;   // Time before the player can dash again
 UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
+WORD plat_knockback_vel_x;   // Knockback velocity in the x direction
+WORD plat_knockback_vel_y;   // Knockback velocity in the y direction
+UBYTE plat_knockback_frames; // Number of frames for knockback
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -296,6 +299,7 @@ UBYTE plat_grounded;
 UBYTE plat_on_slope;
 UBYTE plat_slope_y;
 UWORD plat_temp_y = 0;
+UBYTE plat_knockback_frame;
 
 // End of Runtime State -------------------------------------------------------
 
@@ -380,6 +384,9 @@ void platform_init(void) BANKED
     plat_dj_val = plat_extra_jumps;
 #endif
     plat_wj_val = plat_wall_jump_max;
+#ifdef FEAT_PLATFORM_KNOCKBACK
+    plat_knockback_frame = 0;
+#endif
     plat_jump_type = JUMP_TYPE_NONE;
     plat_delta_x = 0;
     plat_delta_y = 0;
@@ -452,6 +459,7 @@ void platform_update(void) BANKED
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
+            plat_vel_x = 0;
             plat_callback_execute(KNOCKBACK_END);
             break;
         }
@@ -560,8 +568,13 @@ void platform_update(void) BANKED
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
+            player_set_jump_anim();
             plat_run_stage = RUN_STAGE_NONE;
             plat_jump_type = JUMP_TYPE_NONE;
+            plat_vel_x = PLAYER.dir == DIR_RIGHT ? -plat_knockback_vel_x : plat_knockback_vel_x;
+            plat_vel_y = -plat_knockback_vel_y;
+            plat_knockback_frame = plat_knockback_frames;
+            plat_drop_frames = 0;
             plat_callback_execute(KNOCKBACK_INIT);
             break;
         }
@@ -1395,36 +1408,30 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_KNOCKBACK
     case KNOCKBACK_STATE: {
         // Horizontal Movement --------------------------------------------
-        if (plat_vel_x < 0)
-        {
-            plat_vel_x += plat_air_dec;
-            plat_vel_x = MIN(plat_vel_x, 0);
-        }
-        else if (plat_vel_x > 0)
-        {
-            plat_vel_x -= plat_air_dec;
-            plat_vel_x = MAX(plat_vel_x, 0);
-        }
+
+        // Horizontal deceleration
+        plat_vel_x = (plat_vel_x < 0)
+            ? MIN(plat_vel_x + plat_air_dec, 0)
+            : MAX(plat_vel_x - plat_air_dec, 0);
         plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
 
         // Vertical Movement ----------------------------------------------
-        // Normal gravity
+
+        // Normal gravity        
         plat_vel_y += plat_grav;
         plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
 
         // Collision ------------------------------------------------------
 
-        // Vertical Collision Checks
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-        plat_temp_y = PLAYER.pos.y;
-
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-        plat_drop_frames = 0;
-#endif
         move_and_collide(COL_CHECK_ALL);
 
-        plat_vel_y = 0;
-        plat_next_state = KNOCKBACK_STATE;
+        // Counters -------------------------------------------------------
+        
+        COUNTER_DECREMENT(plat_knockback_frame);
+        if (plat_knockback_frame != 0) {
+            plat_next_state = KNOCKBACK_STATE;
+        }
 
         break;
     }
