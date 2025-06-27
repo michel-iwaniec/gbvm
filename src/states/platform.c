@@ -883,20 +883,12 @@ void platform_update(void) BANKED
         move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
-        // Button direction overrides velocity, for slippery run reasons
+
         if (INPUT_LEFT)
         {
             actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
         }
         else if (INPUT_RIGHT)
-        {
-            actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
-        }
-        else if (plat_vel_x < 0)
-        {
-            actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
-        }
-        else if (plat_vel_x > 0)
         {
             actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
         }
@@ -906,8 +898,6 @@ void platform_update(void) BANKED
         }
 
 #ifdef FEAT_PLATFORM_DASH
-        // STATE CHANGE: Above, basic_y_col can shift to
-        // FALL_STATE.--------------------------------------------------
         // GROUND -> DASH Check
         if (dash_press && (plat_dash_from & DASH_FROM_GROUND) && plat_dash_ready_val == 0)
         {
