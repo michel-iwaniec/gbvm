@@ -187,52 +187,52 @@ typedef enum
 
 // Engine Fields --------------------------------------------------------------
 
-WORD plat_walk_vel;          // Maximum velocity while walking
-WORD plat_run_vel;           // Maximum velocity while running
-WORD plat_climb_vel;         // Maximum velocity while climbing
-WORD plat_min_vel;           // Minimum velocity to apply to the player
-WORD plat_walk_acc;          // Acceleration while walking
-WORD plat_run_acc;           // Acceleration while running
-WORD plat_dec;               // Deceleration rate
-WORD plat_jump_vel;          // Jump velocity
-WORD plat_grav;              // Gravity applied to the player
-WORD plat_hold_grav;         // Gravity applied to the player while holding jump
-WORD plat_max_fall_vel;      // Maximum fall velocity
-BYTE plat_camera_deadzone_x; // Camera deadzone x
-UBYTE plat_camera_block;     // Limit the player's movement to the camera's edges
-UBYTE plat_drop_through;     // Drop-through control input option
-WORD plat_jump_min;          // Jump amount applied on the first frame of jumping
-UBYTE plat_hold_jump_frames; // Maximum number for frames for continuous input
-UBYTE plat_extra_jumps;      // Number of jumps while in the air
-WORD plat_jump_reduction;    // Reduce height each double jump
-UBYTE plat_coyote_frames;    // Coyote Time maximum frames
-UBYTE plat_buffer_frames;    // Jump Buffer maximum frames
-UBYTE plat_wall_jump_max;    // Number of wall jumps in a row
-UBYTE plat_wall_slide;       // Enables/Disables wall sliding
-WORD plat_wall_grav;         // Gravity while clinging to the wall
-WORD plat_wall_kick;         // Horizontal force for pushing off the wall
-UBYTE plat_float_input;      // Input type for float (hold up or hold jump)
-WORD plat_float_grav;        // Speed of fall descent while floating
-UBYTE plat_air_control;      // Enables/Disables air control
-UBYTE plat_turn_control;     // Controls the amount of slippage when the player
-                             // turns while running.
-WORD plat_air_dec;           // air deceleration rate
-WORD plat_turn_acc;          // Speed with which a character turns
-WORD plat_run_boost;         // Additional jump height based on horizontal speed
-UBYTE plat_dash;             // Choice of input for dashing:
-                             // double-tap, interact, or down and interact
-UBYTE plat_dash_from;        // Ground, air, ladders flags
-UBYTE plat_dash_jump_from;   // Allow jumping from dash state
-UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
-                             // triggers, and walls
-WORD plat_dash_dist;         // Distance of the dash
-UBYTE plat_dash_frames;      // Number of frames for dashing
-UBYTE plat_dash_ready_frames;// Frames before the player can dash again
-UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
-WORD plat_knockback_vel_x;   // Knockback velocity in the x direction
-WORD plat_knockback_vel_y;   // Knockback velocity in the y direction
-UBYTE plat_knockback_frames; // Number of frames for knockback
-WORD plat_blank_grav;        // Blank state gravity
+WORD plat_walk_vel;            // Maximum velocity while walking
+WORD plat_run_vel;             // Maximum velocity while running
+WORD plat_climb_vel;           // Maximum velocity while climbing
+WORD plat_min_vel;             // Minimum velocity to apply to the player
+WORD plat_walk_acc;            // Acceleration while walking
+WORD plat_run_acc;             // Acceleration while running
+WORD plat_dec;                 // Deceleration rate
+WORD plat_jump_vel;            // Jump velocity
+WORD plat_grav;                // Gravity applied to the player
+WORD plat_hold_grav;           // Gravity applied to the player while holding jump
+WORD plat_max_fall_vel;        // Maximum fall velocity
+BYTE plat_camera_deadzone_x;   // Camera deadzone x
+UBYTE plat_camera_block;       // Limit the player's movement to the camera's edges
+UBYTE plat_drop_through;       // Drop-through control input option
+WORD plat_jump_min;            // Jump amount applied on the first frame of jumping
+UBYTE plat_hold_jump_frames;   // Maximum number for frames for additional jump velocity
+UBYTE plat_extra_jumps;        // Number of jumps while in the air
+WORD plat_jump_reduction;      // Reduce height each double jump
+UBYTE plat_coyote_frames;      // Coyote Time maximum frames
+UBYTE plat_jump_buffer_frames; // Jump Buffer maximum frames
+UBYTE plat_wall_jump_max;      // Number of wall jumps in a row
+UBYTE plat_wall_slide;         // Enables/Disables wall sliding
+WORD plat_wall_slide_vel;      // Downwards velocity while clinging to the wall
+WORD plat_wall_kick;           // Horizontal force for pushing off the wall
+UBYTE plat_float_input;        // Input type for float (hold up or hold jump)
+WORD plat_float_vel;           // Speed of fall descent while floating
+UBYTE plat_air_control;        // Enables/Disables air control
+UBYTE plat_turn_control;       // Controls the amount of slippage when the player
+                               // turns while running.
+WORD plat_air_dec;             // air deceleration rate
+WORD plat_turn_acc;            // Speed with which a character turns
+WORD plat_run_boost;           // Additional jump height based on horizontal speed
+UBYTE plat_dash;               // Choice of input for dashing:
+                               // double-tap, interact, or down and interact
+UBYTE plat_dash_from;          // Ground, air, ladders flags
+UBYTE plat_dash_jump_from;     // Allow jumping from dash state
+UBYTE plat_dash_mask;          // Choose if the player can dash through actors,
+                               // triggers, and walls
+WORD plat_dash_dist;           // Distance of the dash
+UBYTE plat_dash_frames;        // Number of frames for dashing
+UBYTE plat_dash_ready_frames;  // Frames before the player can dash again
+UBYTE plat_dash_deadzone;      // Override camera x deadzone when in dash state
+WORD plat_knockback_vel_x;     // Knockback velocity in the x direction
+WORD plat_knockback_vel_y;     // Knockback velocity in the y direction
+UBYTE plat_knockback_frames;   // Number of frames for knockback
+WORD plat_blank_grav;          // Blank state gravity
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -674,7 +674,7 @@ void platform_update(void) BANKED
         if (IS_FLOAT_INPUT_PRESSED && plat_vel_y >= 0 && !plat_drop_frames)
         {
             plat_jump_type = JUMP_TYPE_FLOATING;
-            plat_vel_y = plat_float_grav;
+            plat_vel_y = plat_float_vel;
         }
         else
 #endif
@@ -779,7 +779,7 @@ void platform_update(void) BANKED
 
             // Setting the Jump Buffer when jump is pressed while not on
             // the ground
-            plat_jb_val = plat_buffer_frames;
+            plat_jb_val = plat_jump_buffer_frames;
         }
 #endif
 
@@ -1331,7 +1331,7 @@ void platform_update(void) BANKED
         else if (plat_wall_slide)
         {
             // If the toggle is on, use wall gravity
-            plat_vel_y = plat_wall_grav;
+            plat_vel_y = plat_wall_slide_vel;
         }
         else
         {
