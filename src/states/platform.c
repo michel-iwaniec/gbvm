@@ -254,6 +254,7 @@ UBYTE plat_wc_val;        // Wall Coyote Time Variable
 UBYTE plat_hold_jump_val; // Jump input hold variable
 UBYTE plat_dj_val;        // Current double jump
 UBYTE plat_wj_val;        // Current wall jump
+UBYTE plat_kb_val;        // Current Knockback frame
 
 // WALL variables
 BYTE plat_last_wall; // tracks the last wall the player touched
@@ -299,7 +300,6 @@ UBYTE plat_grounded;
 UBYTE plat_on_slope;
 UBYTE plat_slope_y;
 UWORD plat_temp_y = 0;
-UBYTE plat_knockback_frame;
 
 // End of Runtime State -------------------------------------------------------
 
@@ -385,7 +385,7 @@ void platform_init(void) BANKED
 #endif
     plat_wj_val = plat_wall_jump_max;
 #ifdef FEAT_PLATFORM_KNOCKBACK
-    plat_knockback_frame = 0;
+    plat_kb_val = 0;
 #endif
     plat_jump_type = JUMP_TYPE_NONE;
     plat_delta_x = 0;
@@ -573,7 +573,7 @@ void platform_update(void) BANKED
             plat_jump_type = JUMP_TYPE_NONE;
             plat_vel_x = PLAYER.dir == DIR_RIGHT ? -plat_knockback_vel_x : plat_knockback_vel_x;
             plat_vel_y = -plat_knockback_vel_y;
-            plat_knockback_frame = plat_knockback_frames;
+            plat_kb_val = plat_knockback_frames;
             plat_drop_frames = 0;
             plat_callback_execute(KNOCKBACK_INIT);
             break;
@@ -1428,8 +1428,8 @@ void platform_update(void) BANKED
 
         // Counters -------------------------------------------------------
         
-        COUNTER_DECREMENT(plat_knockback_frame);
-        if (plat_knockback_frame != 0) {
+        COUNTER_DECREMENT(plat_kb_val);
+        if (plat_kb_val != 0) {
             plat_next_state = KNOCKBACK_STATE;
         }
 
