@@ -203,11 +203,11 @@ BYTE plat_camera_deadzone_x; // Camera deadzone x
 UBYTE plat_camera_block;     // Limit the player's movement to the camera's edges
 UBYTE plat_drop_through;     // Drop-through control input option
 WORD plat_jump_min;          // Jump amount applied on the first frame of jumping
-UBYTE plat_hold_jump_max;    // Maximum number for frames for continuous input
+UBYTE plat_hold_jump_frames; // Maximum number for frames for continuous input
 UBYTE plat_extra_jumps;      // Number of jumps while in the air
 WORD plat_jump_reduction;    // Reduce height each double jump
-UBYTE plat_coyote_max;       // Coyote Time maximum frames
-UBYTE plat_buffer_max;       // Jump Buffer maximum frames
+UBYTE plat_coyote_frames;    // Coyote Time maximum frames
+UBYTE plat_buffer_frames;    // Jump Buffer maximum frames
 UBYTE plat_wall_jump_max;    // Number of wall jumps in a row
 UBYTE plat_wall_slide;       // Enables/Disables wall sliding
 WORD plat_wall_grav;         // Gravity while clinging to the wall
@@ -228,7 +228,7 @@ UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
                              // triggers, and walls
 WORD plat_dash_dist;         // Distance of the dash
 UBYTE plat_dash_frames;      // Number of frames for dashing
-UBYTE plat_dash_ready_max;   // Time before the player can dash again
+UBYTE plat_dash_ready_frames;// Frames before the player can dash again
 UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
 WORD plat_knockback_vel_x;   // Knockback velocity in the x direction
 WORD plat_knockback_vel_y;   // Knockback velocity in the y direction
@@ -241,12 +241,13 @@ WORD plat_blank_grav;        // Blank state gravity
 
 script_event_t plat_events[CALLBACK_SIZE];
 
+// State machine
 state_e plat_state;      // Current platformer state
 state_e plat_next_state; // Next frame's platformer state
-UBYTE plat_nocontrol_h;  // Turns off horizontal input, currently only for wall jumping
-UBYTE plat_drop_frames;  // The number of frames remaining to drop through platforms
-WORD plat_delta_x;
-WORD plat_delta_y;
+
+// Position offsets
+WORD plat_delta_x;       // The subpixel offset to apply to the player's x position in move_and_collide
+WORD plat_delta_y;       // The subpixel offset to apply to the player's y position in move_and_collide
 
 // COUNTER variables
 UBYTE plat_ct_val;        // Coyote Time Variable
@@ -256,6 +257,8 @@ UBYTE plat_hold_jump_val; // Jump input hold variable
 UBYTE plat_dj_val;        // Current double jump
 UBYTE plat_wj_val;        // Current wall jump
 UBYTE plat_kb_val;        // Current Knockback frame
+UBYTE plat_drop_frames;   // The number of frames remaining to drop through platforms
+UBYTE plat_nocontrol_h;   // Turns off horizontal input, currently only for wall jumping
 
 // WALL variables
 BYTE plat_last_wall; // tracks the last wall the player touched
@@ -288,7 +291,7 @@ WORD plat_jump_reduction;     // Holds the reduction amount that has been normal
 WORD plat_vel_x; // Tracks the player's x-velocity between frames
 WORD plat_vel_y; // Tracks the player's y-velocity between frames
 
-// VARIABLES FOR CAMERAS
+// Camera
 WORD *plat_edge_left;
 WORD *plat_edge_right;
 WORD plat_stage_left;
@@ -380,7 +383,7 @@ void platform_init(void) BANKED
     plat_vel_y = 4000;              // Magic number for preventing a small glitch when loading
                                     // into a scene
     plat_last_wall = WALL_COL_NONE; // This could be 1 bit
-    plat_hold_jump_val = plat_hold_jump_max;
+    plat_hold_jump_val = plat_hold_jump_frames;
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
     plat_dj_val = plat_extra_jumps;
 #endif
@@ -493,7 +496,7 @@ void platform_update(void) BANKED
             // INPUT_PLATFORM_JUMP But if the player switches to this state
             // without pressing jump, then these won't fire...
             plat_grounded = FALSE;
-            plat_hold_jump_val = plat_hold_jump_max;
+            plat_hold_jump_val = plat_hold_jump_frames;
             plat_actor_attached = FALSE;
             plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
             plat_jb_val = 0;
@@ -525,7 +528,7 @@ void platform_update(void) BANKED
             plat_wj_val = plat_wall_jump_max;
 #endif
 #ifdef FEAT_PLATFORM_COYOTE_TIME
-            plat_ct_val = plat_coyote_max;
+            plat_ct_val = plat_coyote_frames;
 #endif
 #ifdef FEAT_PLATFORM_DROP_THROUGH
             plat_drop_frames = 0;
@@ -547,7 +550,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
 #ifdef FEAT_PLATFORM_COYOTE_TIME
-            plat_ct_val = plat_coyote_max;
+            plat_ct_val = plat_coyote_frames;
 #endif
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
             plat_dj_val = plat_extra_jumps;
@@ -778,7 +781,7 @@ void platform_update(void) BANKED
 
             // Setting the Jump Buffer when jump is pressed while not on
             // the ground
-            plat_jb_val = plat_buffer_max;
+            plat_jb_val = plat_buffer_frames;
         }
 #endif
 
@@ -1601,7 +1604,7 @@ void dash_init(void) BANKED
 
     plat_actor_attached = FALSE;
     camera_deadzone_x = plat_dash_deadzone;
-    plat_dash_ready_val = plat_dash_ready_max + plat_dash_frames;
+    plat_dash_ready_val = plat_dash_ready_frames + plat_dash_frames;
 #ifndef FEAT_PLATFORM_DASH_USE_GRAVITY
     plat_vel_y = 0;
 #endif
@@ -1869,7 +1872,7 @@ void move_and_collide(UBYTE mask) BANKED
             plat_col = wall;
             plat_last_wall = wall;
 #ifdef FEAT_PLATFORM_WALL_JUMP
-            plat_wc_val = plat_coyote_max + 1;
+            plat_wc_val = plat_coyote_frames + 1;
 #endif
         }
 
@@ -2101,7 +2104,7 @@ finally_check_actor_col:
 
                         plat_col = moving_right ? WALL_COL_RIGHT : WALL_COL_LEFT;
                         plat_last_wall = plat_col;
-                        plat_wc_val = plat_coyote_max + 1;
+                        plat_wc_val = plat_coyote_frames + 1;
 
                         if ((moving_right && !INPUT_RIGHT) || (!moving_right && !INPUT_LEFT))
                         {
