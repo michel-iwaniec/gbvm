@@ -233,6 +233,7 @@ UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
 WORD plat_knockback_vel_x;   // Knockback velocity in the x direction
 WORD plat_knockback_vel_y;   // Knockback velocity in the y direction
 UBYTE plat_knockback_frames; // Number of frames for knockback
+WORD plat_blank_grav;        // Blank state gravity
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -466,6 +467,8 @@ void platform_update(void) BANKED
 #endif
 #ifdef FEAT_PLATFORM_BLANK
         case BLANK_STATE: {
+            plat_vel_x = 0;
+            plat_vel_y = 0;
             plat_callback_execute(BLANK_END);
             break;
         }
@@ -1429,7 +1432,17 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_BLANK
     case BLANK_STATE: {
-        move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+
+        // Vertical Movement ----------------------------------------------
+
+        plat_vel_y += plat_blank_grav;
+        plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+
+        // Collision ------------------------------------------------------
+
+        move_and_collide(COL_CHECK_Y);
+        
         break;
     }
 #endif
