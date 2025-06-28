@@ -51,9 +51,9 @@
 #define PLATFORM_CAMERA_DEADZONE_Y 16
 #endif
 
-#define DASH_INPUT_INTERACT 1
-#define DASH_INPUT_DOUBLE_TAP 2
-#define DASH_INPUT_DOWN_JUMP 3
+#define DASH_INPUT_INTERACT 0
+#define DASH_INPUT_DOUBLE_TAP 1
+#define DASH_INPUT_DOWN_JUMP 2
 
 #define JUMP_TYPE_NONE 0
 #define JUMP_TYPE_GROUND 1
@@ -221,7 +221,7 @@ UBYTE plat_turn_control;       // Controls the amount of slippage when the playe
 WORD plat_air_dec;             // air deceleration rate
 WORD plat_turn_acc;            // Speed with which a character turns
 WORD plat_run_boost;           // Additional jump height based on horizontal speed
-UBYTE plat_dash;               // Choice of input for dashing: double-tap, interact, or down and interact
+UBYTE plat_dash_active;        // Dash feature is active
 UBYTE plat_dash_from;          // Ground, air, ladders flags
 UBYTE plat_dash_jump_from;     // Allow jumping from dash state
 UBYTE plat_dash_mask;          // Choose if the player can dash through actors, triggers, and walls
@@ -312,7 +312,7 @@ void plat_callback_execute(UBYTE i) BANKED;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
 
-inline UBYTE drop_press(void)
+inline UBYTE drop_input_pressed(void)
 {
   return plat_drop_through_active && (
 #if INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_HOLD
@@ -327,6 +327,49 @@ inline UBYTE drop_press(void)
       FALSE
 #endif
   );
+}
+
+#endif
+
+#ifdef FEAT_PLATFORM_DASH
+
+inline UBYTE dash_input_pressed(void)
+{
+    if (!plat_dash_active) {
+      return FALSE;
+    }
+#if INPUT_PLATFORM_DASH == DASH_INPUT_INTERACT
+    return INPUT_PRESSED(INPUT_PLATFORM_INTERACT)
+#elif INPUT_PLATFORM_DASH == DASH_INPUT_DOUBLE_TAP
+    // Double-Tap Dash
+    if (INPUT_PRESSED(INPUT_LEFT))
+    {
+        if (plat_tap_timer < 0)
+        {
+            return TRUE;
+        }
+        else
+        {
+            plat_tap_timer = -DOUBLE_TAP_WINDOW;
+        }
+    }
+    else if (INPUT_PRESSED(INPUT_RIGHT))
+    {
+        if (plat_tap_timer > 0)
+        {
+            return TRUE;
+        }
+        else
+        {
+            plat_tap_timer = DOUBLE_TAP_WINDOW;
+        }
+    }
+    return FALSE;    
+#elif INPUT_PLATFORM_DASH == DASH_INPUT_DOWN_JUMP
+    return (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP));
+#else
+    return FALSE;
+#endif
 }
 
 #endif
@@ -620,51 +663,8 @@ void platform_update(void) BANKED
     // A. INPUT CHECK =========================================================
 
 #ifdef FEAT_PLATFORM_DASH
-
     // Dash Input Check
-    UBYTE dash_press = FALSE;
-    switch (plat_dash)
-    {
-    case DASH_INPUT_INTERACT:
-        // Interact Dash
-        if (INPUT_PRESSED(INPUT_PLATFORM_INTERACT))
-        {
-            dash_press = TRUE;
-        }
-        break;
-    case DASH_INPUT_DOUBLE_TAP:
-        // Double-Tap Dash
-        if (INPUT_PRESSED(INPUT_LEFT))
-        {
-            if (plat_tap_timer < 0)
-            {
-                dash_press = TRUE;
-            }
-            else
-            {
-                plat_tap_timer = -DOUBLE_TAP_WINDOW;
-            }
-        }
-        else if (INPUT_PRESSED(INPUT_RIGHT))
-        {
-            if (plat_tap_timer > 0)
-            {
-                dash_press = TRUE;
-            }
-            else
-            {
-                plat_tap_timer = DOUBLE_TAP_WINDOW;
-            }
-        }
-        break;
-    case DASH_INPUT_DOWN_JUMP:
-        // Down and Interact (need to check both orders)
-        if ((INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP)))
-        {
-            dash_press = TRUE;
-        }
-        break;
-    }
+    UBYTE dash_press = dash_input_pressed();
 #endif
 
     // B. STATE MACHINE =======================================================
@@ -678,7 +678,7 @@ void platform_update(void) BANKED
         plat_jump_type = JUMP_TYPE_NONE;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
-        if (drop_press())
+        if (drop_input_pressed())
         {
             plat_drop_timer = DROP_FRAMES_MAX;
             plat_is_actor_attached = FALSE;
@@ -835,7 +835,7 @@ void platform_update(void) BANKED
         plat_grounded = true;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
-        if (drop_press())
+        if (drop_input_pressed())
         {
             plat_drop_timer = DROP_FRAMES_MAX;
             plat_is_actor_attached = FALSE;
