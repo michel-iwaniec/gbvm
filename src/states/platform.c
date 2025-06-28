@@ -269,10 +269,10 @@ UBYTE plat_dash_currentframe;  // Tracks the current frame of the overall dash
 BYTE plat_tap_timer;           // Number of frames since the last time left or right button was tapped
 
 // Solid actors
-actor_t *plat_last_actor;      // The last actor the player hit, and that they were attached to
-UBYTE plat_actor_attached;     // Keeps track of whether the player is currently on an actor
-UWORD plat_mp_last_x;          // Keeps track of the pos.x of the attached actor from the previous frame
-UWORD plat_mp_last_y;          // Keeps track of the pos.y of the attached actor from the previous frame
+actor_t *plat_attached_actor;  // The last actor the player hit, and that they were attached to
+UBYTE plat_is_actor_attached;  // Keeps track of whether the player is currently on an actor
+UWORD plat_attached_prev_x;    // Keeps track of the pos.x of the attached actor from the previous frame
+UWORD plat_attached_prev_y;    // Keeps track of the pos.y of the attached actor from the previous frame
 UWORD plat_temp_y = 0;         // Temporary y position for the player when moving and colliding with an solid actor
 
 // Jumping
@@ -357,7 +357,7 @@ void platform_init(void) BANKED
     // Initialize State
     plat_state = GROUND_STATE;
     plat_next_state = GROUND_STATE;
-    plat_actor_attached = FALSE;
+    plat_is_actor_attached = FALSE;
     plat_run_stage = RUN_STAGE_NONE;
     plat_nocontrol_h_timer = 0;
 
@@ -476,7 +476,7 @@ void platform_update(void) BANKED
         {
         case FALL_STATE: {
             plat_grounded = FALSE;
-            plat_actor_attached = FALSE;
+            plat_is_actor_attached = FALSE;
             plat_callback_execute(FALL_INIT);
             break;
         }
@@ -488,7 +488,7 @@ void platform_update(void) BANKED
             // without pressing jump, then these won't fire...
             plat_grounded = FALSE;
             plat_hold_jump_timer = plat_hold_jump_frames;
-            plat_actor_attached = FALSE;
+            plat_is_actor_attached = FALSE;
             plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
             plat_jump_buffer_timer = 0;
 #ifdef FEAT_PLATFORM_COYOTE_TIME
@@ -658,7 +658,7 @@ void platform_update(void) BANKED
         if (drop_press())
         {
             plat_drop_timer = DROP_FRAMES_MAX;
-            plat_actor_attached = FALSE;
+            plat_is_actor_attached = FALSE;
         }
 #endif
 
@@ -815,38 +815,38 @@ void platform_update(void) BANKED
         if (drop_press())
         {
             plat_drop_timer = DROP_FRAMES_MAX;
-            plat_actor_attached = FALSE;
+            plat_is_actor_attached = FALSE;
         }
 #endif
 
-        if (plat_actor_attached)
+        if (plat_is_actor_attached)
         {
             // If the platform has been disabled, detach the player
-            if (plat_last_actor->disabled == TRUE)
+            if (plat_attached_actor->disabled == TRUE)
             {
                 plat_next_state = FALL_STATE;
-                plat_actor_attached = FALSE;
+                plat_is_actor_attached = FALSE;
             }
             // If the player is off the platform to the right, detach
             // from the platform
             else if (PLAYER.pos.x + PLAYER.bounds.left >
-                     plat_last_actor->pos.x + PX_TO_SUBPX(1) + plat_last_actor->bounds.right)
+                     plat_attached_actor->pos.x + PX_TO_SUBPX(1) + plat_attached_actor->bounds.right)
             {
                 plat_next_state = FALL_STATE;
-                plat_actor_attached = FALSE;
+                plat_is_actor_attached = FALSE;
             }
             // If the player is off the platform to the left, detach
             else if (PLAYER.pos.x + PX_TO_SUBPX(1) + PLAYER.bounds.right <
-                     plat_last_actor->pos.x + plat_last_actor->bounds.left)
+                     plat_attached_actor->pos.x + plat_attached_actor->bounds.left)
             {
                 plat_next_state = FALL_STATE;
-                plat_actor_attached = FALSE;
+                plat_is_actor_attached = FALSE;
             }
             // Otherwise, add any change in movement from platform
             else
             {
-                plat_delta_x += (plat_last_actor->pos.x - plat_mp_last_x);
-                plat_mp_last_x = plat_last_actor->pos.x;
+                plat_delta_x += (plat_attached_actor->pos.x - plat_attached_prev_x);
+                plat_attached_prev_x = plat_attached_actor->pos.x;
             }
 
             // If we're on a platform, zero out any other motion from
@@ -854,14 +854,14 @@ void platform_update(void) BANKED
             plat_vel_y = 0;
 
             // Add any change from the platform we're standing on
-            plat_delta_y += plat_last_actor->pos.y - plat_mp_last_y;
+            plat_delta_y += plat_attached_actor->pos.y - plat_attached_prev_y;
 
             // We're setting these to the platform's position, rather than
             // the actor so that if something causes the player to detach
             // (like hitting the roof), they won't automatically get
             // re-attached in the subsequent actor collision step.
-            plat_mp_last_y = plat_last_actor->pos.y;
-            plat_temp_y = plat_last_actor->pos.y;
+            plat_attached_prev_y = plat_attached_actor->pos.y;
+            plat_temp_y = plat_attached_actor->pos.y;
         }
         else
         {
@@ -1594,7 +1594,7 @@ void dash_init(void) BANKED
 #endif        
     }
 
-    plat_actor_attached = FALSE;
+    plat_is_actor_attached = FALSE;
     camera_deadzone_x = plat_dash_deadzone;
     plat_dash_cooldown_timer = plat_dash_ready_frames + plat_dash_frames;
 #ifndef FEAT_PLATFORM_DASH_USE_GRAVITY
@@ -1991,7 +1991,7 @@ void move_and_collide(UBYTE mask) BANKED
                 }
 #endif
                 new_y = TILE_TO_SUBPX(tile_hit_y) - PLAYER.bounds.bottom - 1;
-                plat_actor_attached = FALSE; // Detach when MP moves through a solid tile.
+                plat_is_actor_attached = FALSE; // Detach when MP moves through a solid tile.
                 plat_vel_y = 0;
 #ifdef FEAT_PLATFORM_DROP_THROUGH
                 plat_drop_timer = 0;
@@ -2016,12 +2016,12 @@ void move_and_collide(UBYTE mask) BANKED
                 new_y = TILE_TO_SUBPX(tile_hit_y + 1) - PLAYER.bounds.top + 1;
                 plat_vel_y = 0;
                 // MP Test: Attempting stuff to stop the player from continuing upward
-                if (plat_actor_attached)
+                if (plat_is_actor_attached)
                 {
-                    plat_temp_y = plat_last_actor->pos.y;
-                    if (plat_last_actor->bounds.top > 0)
+                    plat_temp_y = plat_attached_actor->pos.y;
+                    if (plat_attached_actor->bounds.top > 0)
                     {
-                        plat_temp_y += plat_last_actor->bounds.top + plat_last_actor->bounds.bottom << 5;
+                        plat_temp_y += plat_attached_actor->bounds.top + plat_attached_actor->bounds.bottom << 5;
                     }
                     new_y = plat_temp_y;
                 }
@@ -2048,11 +2048,11 @@ finally_check_actor_col:
                 hit_actor->collision_group & (COLLISION_GROUP_FLAG_PLATFORM | COLLISION_GROUP_FLAG_SOLID);
             const UBYTE is_solid = is_platform & COLLISION_GROUP_FLAG_SOLID;
 
-            if (is_platform && (!plat_actor_attached || hit_actor != plat_last_actor))
+            if (is_platform && (!plat_is_actor_attached || hit_actor != plat_attached_actor))
             {
                 if (!is_solid && (plat_drop_timer != 0))
                 {
-                    plat_actor_attached = FALSE;
+                    plat_is_actor_attached = FALSE;
                     plat_next_state = FALL_STATE;
                 }
                 else if (
@@ -2060,12 +2060,12 @@ finally_check_actor_col:
                         && (plat_vel_y >= 0)
                 ) {
                     // Attach to actor (solid or platform)
-                    plat_last_actor = hit_actor;
-                    plat_mp_last_x = hit_actor->pos.x;
-                    plat_mp_last_y = hit_actor->pos.y;
+                    plat_attached_actor = hit_actor;
+                    plat_attached_prev_x = hit_actor->pos.x;
+                    plat_attached_prev_y = hit_actor->pos.y;
                     PLAYER.pos.y = hit_actor->pos.y + hit_actor->bounds.top - PLAYER.bounds.bottom - 4;
                     plat_vel_y = 0;
-                    plat_actor_attached = TRUE;
+                    plat_is_actor_attached = TRUE;
                     if (plat_state != DASH_STATE)
                     {
                         plat_next_state = GROUND_STATE;
@@ -2081,7 +2081,7 @@ finally_check_actor_col:
                                         (-PLAYER.bounds.top + hit_actor->bounds.bottom) + 32;
                         plat_vel_y = plat_grav;
 
-                        if (plat_next_state == JUMP_STATE || plat_actor_attached)
+                        if (plat_next_state == JUMP_STATE || plat_is_actor_attached)
                         {
                             plat_next_state = FALL_STATE;
                         }
