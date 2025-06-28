@@ -193,15 +193,15 @@ WORD plat_min_vel;             // Minimum velocity to apply to the player
 WORD plat_walk_acc;            // Acceleration while walking
 WORD plat_run_acc;             // Acceleration while running
 WORD plat_dec;                 // Deceleration rate
-WORD plat_jump_vel;            // Jump velocity
+WORD plat_jump_vel;            // Jump velocity applied on the first frame of jumping
 WORD plat_grav;                // Gravity applied to the player
 WORD plat_hold_grav;           // Gravity applied to the player while holding jump
 WORD plat_max_fall_vel;        // Maximum fall velocity
 BYTE plat_camera_deadzone_x;   // Camera deadzone x
 UBYTE plat_camera_block;       // Limit the player's movement to the camera's edges
 UBYTE plat_drop_through_active;// Drop-through is active
-WORD plat_jump_min;            // Jump amount applied on the first frame of jumping
-UBYTE plat_hold_jump_frames;   // Maximum number for frames for additional jump velocity
+WORD plat_jump_hold_vel;       // Jump velocity applied while holding jump
+UBYTE plat_jump_hold_frames;   // Maximum number for frames for additional jump velocity
 UBYTE plat_extra_jumps;        // Number of jumps while in the air
 WORD plat_jump_reduction;      // Reduce height each double jump
 UBYTE plat_coyote_frames;      // Coyote Time maximum frames
@@ -288,7 +288,7 @@ UBYTE plat_grounded;           // Tracks whether the player is on the ground or 
 UBYTE plat_on_slope;           // Tracks whether the player is on a slope or not
 UBYTE plat_slope_y;            // The y position of the slope the player is currently on
 
-// VARIABLES FOR EVENT PLUGINS
+// Variables for plugins
 BYTE plat_run_stage;           // Tracks the stage of running based on the run type
 UBYTE plat_jump_type;          // Tracks the type of jumping, from the ground, in the air, or off the wall
 
@@ -450,7 +450,7 @@ void platform_init(void) BANKED
     plat_vel_y = 4000;              // Magic number for preventing a small glitch when loading
                                     // into a scene
     plat_last_wall_col = WALL_COL_NONE; // This could be 1 bit
-    plat_hold_jump_timer = plat_hold_jump_frames;
+    plat_hold_jump_timer = plat_jump_hold_frames;
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
     plat_extra_jumps_counter = plat_extra_jumps;
 #endif
@@ -566,9 +566,9 @@ void platform_update(void) BANKED
             // INPUT_PLATFORM_JUMP But if the player switches to this state
             // without pressing jump, then these won't fire...
             plat_grounded = FALSE;
-            plat_hold_jump_timer = plat_hold_jump_frames;
+            plat_hold_jump_timer = plat_jump_hold_frames;
             plat_is_actor_attached = FALSE;
-            plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
+            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
 #ifdef FEAT_PLATFORM_COYOTE_TIME
             plat_coyote_timer = 0;
             plat_jump_buffer_timer = 0;
@@ -576,7 +576,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
             plat_coyote_timer = 0;
 #endif
-            plat_jump_vel_per_frame = plat_jump_vel;
+            plat_jump_vel_per_frame = plat_jump_hold_vel;
             // Calculate jump boost value based on horizontal velocity
             if (plat_run_boost != 0) {
                 UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
@@ -800,7 +800,7 @@ void platform_update(void) BANKED
                 {
                     plat_extra_jumps_counter--;
                 }
-                plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
+                plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
                 plat_jump_reduction_vel += plat_jump_reduction;
                 plat_next_state = JUMP_STATE;
                 break;
@@ -1074,7 +1074,7 @@ void platform_update(void) BANKED
                 {
                     plat_extra_jumps_counter--;
                 }
-                plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
+                plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
                 plat_jump_reduction_vel += plat_jump_reduction;
                 plat_next_state = JUMP_STATE;
             }
