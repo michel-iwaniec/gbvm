@@ -61,9 +61,8 @@
 #define JUMP_TYPE_WALL 3
 #define JUMP_TYPE_FLOATING 4
 
-#define FLOAT_INPUT_NONE 0
-#define FLOAT_INPUT_HOLD_JUMP 1
-#define FLOAT_INPUT_HOLD_UP 2
+#define FLOAT_INPUT_HOLD_JUMP 0
+#define FLOAT_INPUT_HOLD_UP 1
 
 #define WALL_COL_NONE 0
 #define WALL_COL_LEFT -1
@@ -123,9 +122,6 @@
 #define IS_SLOPE_RIGHT(t) (((t) & 0x10) == 0)
 #define IS_LADDER(t) (((t) & 0xF0) == 0x10)
 #define VEL_TO_SUBPX(v) ((((v) & 0x8000) ? (((v) >> 8) | 0xFF00) : ((v) >> 8)) << 1)
-#define IS_FLOAT_INPUT_PRESSED                                                                                         \
-    ((plat_float_input == FLOAT_INPUT_HOLD_JUMP && INPUT_PLATFORM_JUMP) ||                                             \
-     (plat_float_input == FLOAT_INPUT_HOLD_UP && INPUT_UP))
 
 #define COUNTER_DECREMENT(x)                                                                                           \
     do                                                                                                                 \
@@ -214,7 +210,7 @@ UBYTE plat_wall_jump_max;      // Number of wall jumps in a row
 UBYTE plat_wall_slide;         // Enables/Disables wall sliding
 WORD plat_wall_slide_vel;      // Downwards velocity while clinging to the wall
 WORD plat_wall_kick;           // Horizontal force for pushing off the wall
-UBYTE plat_float_input;        // Input type for float (hold up or hold jump)
+UBYTE plat_float_active;       // Float feature is active
 WORD plat_float_vel;           // Speed of fall descent while floating
 UBYTE plat_air_control;        // Enables/Disables air control
 UBYTE plat_turn_control;       // Controls the amount of slippage when the player turns while running.
@@ -323,6 +319,23 @@ inline UBYTE drop_input_pressed(void)
       INPUT_DOWN && INPUT_PLATFORM_JUMP
 #elif INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_JUMP_TAP
       (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+#else
+      FALSE
+#endif
+  );
+}
+
+#endif
+
+#ifdef FEAT_PLATFORM_FLOAT
+
+inline UBYTE float_input_pressed(void)
+{
+  return plat_float_active && (
+#if INPUT_PLATFORM_FLOAT == FLOAT_INPUT_HOLD_JUMP
+      INPUT_PLATFORM_JUMP
+#elif INPUT_PLATFORM_FLOAT == FLOAT_INPUT_HOLD_UP
+      INPUT_UP
 #else
       FALSE
 #endif
@@ -688,7 +701,7 @@ void platform_update(void) BANKED
         // Vertical Movement ----------------------------------------------
 
 #ifdef FEAT_PLATFORM_FLOAT
-        if (IS_FLOAT_INPUT_PRESSED && plat_vel_y >= 0 && !plat_drop_timer)
+        if (float_input_pressed() && plat_vel_y >= 0 && !plat_drop_timer)
         {
             plat_jump_type = JUMP_TYPE_FLOATING;
             plat_vel_y = plat_float_vel;
