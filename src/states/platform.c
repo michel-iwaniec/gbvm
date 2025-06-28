@@ -490,9 +490,9 @@ void platform_update(void) BANKED
             plat_hold_jump_timer = plat_hold_jump_frames;
             plat_is_actor_attached = FALSE;
             plat_vel_y = MIN(-plat_jump_min, plat_vel_y);
-            plat_jump_buffer_timer = 0;
 #ifdef FEAT_PLATFORM_COYOTE_TIME
             plat_coyote_timer = 0;
+            plat_jump_buffer_timer = 0;
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
             plat_coyote_timer = 0;
@@ -771,9 +771,11 @@ void platform_update(void) BANKED
             }
 #endif
 
-            // Setting the Jump Buffer when jump is pressed while not on
-            // the ground
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+            // Setting the Jump Buffer when jump is pressed while not on ground
             plat_jump_buffer_timer = plat_jump_buffer_frames;
+#endif
+
         }
 #endif
 
@@ -781,11 +783,6 @@ void platform_update(void) BANKED
         // FALL -> LADDER Check
         ladder_check();
 #endif
-
-        // COUNTERS
-        //  Counting down Jump Buffer Window
-        //  Set in Fall and checked in Ground state
-        COUNTER_DECREMENT(plat_jump_buffer_timer);
 
         // Counting down No Control frames
         // Set in Wall and Fall states, checked in Fall and Jump states
@@ -795,6 +792,9 @@ void platform_update(void) BANKED
         // Counting down Coyote Time Window
         // Set in ground and checked in fall state
         COUNTER_DECREMENT(plat_coyote_timer);
+        //  Counting down Jump Buffer Window
+        //  Set in Fall and checked in Ground state
+        COUNTER_DECREMENT(plat_jump_buffer_timer);
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
         // Counting down Wall Coyote Time
