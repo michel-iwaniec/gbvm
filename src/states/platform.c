@@ -44,6 +44,9 @@
 #ifndef INPUT_PLATFORM_INTERACT
 #define INPUT_PLATFORM_INTERACT INPUT_A
 #endif
+#ifndef INPUT_PLATFORM_DROP_THROUGH
+#define INPUT_PLATFORM_DROP_THROUGH 0
+#endif
 #ifndef PLATFORM_CAMERA_DEADZONE_Y
 #define PLATFORM_CAMERA_DEADZONE_Y 16
 #endif
@@ -85,10 +88,10 @@
 #define CAMERA_LOCK_SCREEN_LEFT 0x1
 #define CAMERA_LOCK_SCREEN_RIGHT 0x2
 
-#define DROP_THRU_INPUT_DOWN_HOLD 0x1
-#define DROP_THRU_INPUT_DOWN_TAP 0x2
-#define DROP_THRU_INPUT_DOWN_JUMP_HOLD 0x3
-#define DROP_THRU_INPUT_DOWN_JUMP_TAP 0x4
+#define DROP_THRU_INPUT_DOWN_HOLD 0x0
+#define DROP_THRU_INPUT_DOWN_TAP 0x1
+#define DROP_THRU_INPUT_DOWN_JUMP_HOLD 0x2
+#define DROP_THRU_INPUT_DOWN_JUMP_TAP 0x3
 
 #define DASH_FROM_GROUND 0x1
 #define DASH_FROM_AIR 0x2
@@ -200,7 +203,7 @@ WORD plat_hold_grav;           // Gravity applied to the player while holding ju
 WORD plat_max_fall_vel;        // Maximum fall velocity
 BYTE plat_camera_deadzone_x;   // Camera deadzone x
 UBYTE plat_camera_block;       // Limit the player's movement to the camera's edges
-UBYTE plat_drop_through;       // Drop-through control input option
+UBYTE plat_drop_through_active;// Drop-through is active
 WORD plat_jump_min;            // Jump amount applied on the first frame of jumping
 UBYTE plat_hold_jump_frames;   // Maximum number for frames for additional jump velocity
 UBYTE plat_extra_jumps;        // Number of jumps while in the air
@@ -301,12 +304,32 @@ void player_set_jump_anim(void) BANKED;
 void wall_check(void) BANKED;
 void ladder_check(void) BANKED;
 void dash_init(void) BANKED;
-UBYTE drop_press(void) BANKED;
 void handle_horizontal_input(void) BANKED;
 void move_and_collide(UBYTE mask) BANKED;
 void plat_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_callback_execute(UBYTE i) BANKED;
+
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+
+inline UBYTE drop_press(void)
+{
+  return plat_drop_through_active && (
+#if INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_HOLD
+      INPUT_DOWN
+#elif INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_TAP
+      INPUT_PRESSED(INPUT_DOWN)
+#elif INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_JUMP_HOLD
+      INPUT_DOWN && INPUT_PLATFORM_JUMP
+#elif INPUT_PLATFORM_DROP_THROUGH == DROP_THRU_INPUT_DOWN_JUMP_TAP
+      (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+#else
+      FALSE
+#endif
+  );
+}
+
+#endif
 
 // End of Function Definitions ------------------------------------------------
 
@@ -1608,24 +1631,6 @@ void dash_init(void) BANKED
 
     plat_dash_mask |= COL_CHECK_X | COL_CHECK_Y;
     player_set_jump_anim();
-}
-#endif
-
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-UBYTE drop_press(void) BANKED
-{
-    switch (plat_drop_through)
-    {
-    case DROP_THRU_INPUT_DOWN_HOLD:
-        return INPUT_DOWN;
-    case DROP_THRU_INPUT_DOWN_TAP:
-        return INPUT_PRESSED(INPUT_DOWN);
-    case DROP_THRU_INPUT_DOWN_JUMP_HOLD:
-        return INPUT_DOWN && INPUT_PLATFORM_JUMP;
-    case DROP_THRU_INPUT_DOWN_JUMP_TAP:
-        return (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP));
-    }
-    return FALSE;
 }
 #endif
 
