@@ -288,6 +288,9 @@ UBYTE plat_grounded;           // Tracks whether the player is on the ground or 
 UBYTE plat_on_slope;           // Tracks whether the player is on a slope or not
 UBYTE plat_slope_y;            // The y position of the slope the player is currently on
 
+// Collision
+UBYTE did_interact_actor;      // Tracks whether the player interacted with an actor this frame
+
 // Variables for plugins
 BYTE plat_run_stage;           // Tracks the stage of running based on the run type
 UBYTE plat_jump_type;          // Tracks the type of jumping, from the ground, in the air, or off the wall
@@ -439,6 +442,7 @@ void platform_init(void) BANKED
     plat_is_actor_attached = FALSE;
     plat_run_stage = RUN_STAGE_NONE;
     plat_nocontrol_h_timer = 0;
+    did_interact_actor = FALSE;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
     plat_drop_timer = 0;
@@ -671,7 +675,8 @@ void platform_update(void) BANKED
 
     // INITIALIZE VARS
 
-    plat_wall_col = WALL_COL_NONE; // tracks if there is a block left or right
+    plat_wall_col = WALL_COL_NONE;
+    did_interact_actor = FALSE;
 
     // A. INPUT CHECK =========================================================
 
@@ -942,7 +947,7 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_JUMP
         // GROUND -> JUMP Check
-        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !plat_drop_timer)
+        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !did_interact_actor && !plat_drop_timer)
         {
             // Standard Jump
             plat_jump_type = JUMP_TYPE_GROUND;
@@ -2143,6 +2148,7 @@ finally_check_actor_col:
             if (hit_actor && !hit_actor->collision_group && hit_actor->script.bank)
             {
                 script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
+                did_interact_actor = TRUE;
             }
         }
     }
