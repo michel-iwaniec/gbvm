@@ -2089,10 +2089,10 @@ finally_check_actor_col:
     {
         actor_t *hit_actor;
         hit_actor = actor_overlapping_player(FALSE);
-        if (hit_actor != NULL && hit_actor->collision_group)
-        {
-            const UBYTE is_platform =
-                hit_actor->collision_group & (COLLISION_GROUP_FLAG_PLATFORM | COLLISION_GROUP_FLAG_SOLID);
+
+        // Handle platform actor attachment
+        if (hit_actor != NULL) {
+            const UBYTE is_platform = hit_actor->collision_group & (COLLISION_GROUP_FLAG_PLATFORM | COLLISION_GROUP_FLAG_SOLID);
             const UBYTE is_solid = is_platform & COLLISION_GROUP_FLAG_SOLID;
 
             if (is_platform && (!plat_is_actor_attached || hit_actor != plat_attached_actor))
@@ -2159,8 +2159,11 @@ finally_check_actor_col:
                     }
                 }
             }
+        }
 
-            // All Other Collisions
+        if (hit_actor != NULL && (hit_actor->collision_group & COLLISION_GROUP_MASK))
+        {
+            // Collision group script handling
             player_register_collision_with(hit_actor);
         }
         else if (INPUT_PRESSED(INPUT_PLATFORM_INTERACT))
@@ -2169,7 +2172,7 @@ finally_check_actor_col:
             {
                 hit_actor = actor_in_front_of_player(8, TRUE);
             }
-            if (hit_actor && !hit_actor->collision_group && hit_actor->script.bank)
+            if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank)
             {
                 script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
                 did_interact_actor = TRUE;
