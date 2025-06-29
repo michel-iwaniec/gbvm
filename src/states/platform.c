@@ -291,6 +291,10 @@ UBYTE plat_slope_y;            // The y position of the slope the player is curr
 // Collision
 UBYTE did_interact_actor;      // Tracks whether the player interacted with an actor this frame
 
+// Ladders
+UBYTE plat_ladder_block_h;     // Track if player has released horizontal input since joining the ladder
+UBYTE plat_ladder_block_v;     // Track if player has released vertical input since leaving the ladder
+
 // Variables for plugins
 BYTE plat_run_stage;           // Tracks the stage of running based on the run type
 UBYTE plat_jump_type;          // Tracks the type of jumping, from the ground, in the air, or off the wall
@@ -518,6 +522,7 @@ void platform_update(void) BANKED
         }
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
+            plat_ladder_block_v = TRUE;
             plat_callback_execute(LADDER_END);
             break;
         }
@@ -618,6 +623,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             plat_jump_type = JUMP_TYPE_NONE;
+            plat_ladder_block_h = TRUE;
             plat_callback_execute(LADDER_INIT);
             break;
         }
@@ -1252,7 +1258,15 @@ void platform_update(void) BANKED
 #endif
         }
 
-        if (INPUT_LEFT)
+        if (plat_ladder_block_h)
+        {
+            // Need to have released left/right since
+            // joining the ladder to allow horizontal movement
+            if (!(INPUT_LEFT | INPUT_RIGHT)) {
+                plat_ladder_block_h = FALSE;
+            }
+        }
+        else if (INPUT_LEFT)
         {
             PLAYER.dir = DIR_LEFT;
 
@@ -1557,11 +1571,19 @@ void wall_check(void) BANKED
 #ifdef FEAT_PLATFORM_LADDERS
 void ladder_check(void) BANKED
 {
-    if (INPUT_PLATFORM_JUMP)
+    if (plat_ladder_block_v) {
+        if (!(INPUT_UP | INPUT_DOWN)) {
+            plat_ladder_block_v = FALSE;
+        } else {
+            return;
+        }
+    }
+    if (INPUT_PLATFORM_JUMP && INPUT_DOWN)
     {
+        // Allow falling from a ladder
         return;
     }
-    if (INPUT_UP_PRESSED)
+    if (INPUT_UP)
     {
         // Grab upwards ladder
         UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
@@ -1573,7 +1595,7 @@ void ladder_check(void) BANKED
             plat_next_state = LADDER_STATE;
         }
     }
-    else if (INPUT_DOWN_PRESSED)
+    else if (INPUT_DOWN)
     {
         // Grab downwards ladder
         UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
