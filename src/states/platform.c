@@ -1572,6 +1572,8 @@ void wall_check(void) BANKED
 void ladder_check(void) BANKED
 {
     if (plat_ladder_block_v) {
+        // Need to have released up/down since
+        // joining the ladder to allow horizontal movement
         if (!(INPUT_UP | INPUT_DOWN)) {
             plat_ladder_block_v = FALSE;
         } else {
