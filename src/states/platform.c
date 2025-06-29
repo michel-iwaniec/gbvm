@@ -926,7 +926,7 @@ void platform_update(void) BANKED
         {
             actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
         }
-        else
+        else if (plat_vel_x == 0)
         {
             actor_set_anim_idle(&PLAYER);
         }
