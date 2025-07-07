@@ -50,69 +50,64 @@ typedef struct gbs_farptr_t {
     const void * DATA;
 } gbs_farptr_t;
 
-static UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos, col_check_dir_e check_dir) {
+static UWORD check_collision_horizontal(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos) {
     UBYTE tx1, ty1, tx2, ty2;
-    switch (check_dir) {
-        case CHECK_DIR_LEFT: // Check left
-            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
-            tx2 = SUBPX_TO_TILE(end_pos + bounds->left);
-            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
-            ty2 = SUBPX_TO_TILE(start_y + bounds->bottom) + 1;
-            if (tx2 > tx1) {
-                tx2 = 0;
-            }
-            while (ty1 != ty2) {
-                if (tile_col_test_range_x(COLLISION_RIGHT, ty1, tx2, tx1)) {
-                    return TILE_TO_SUBPX(tile_hit_x + 1) - bounds->left;
-                }                
-                ty1++;
-            }
-            return end_pos;
-        case CHECK_DIR_RIGHT: // Check right
-            tx1 = SUBPX_TO_TILE(start_x + bounds->right);
-            tx2 = SUBPX_TO_TILE(end_pos + bounds->right);
-            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
-            ty2 = SUBPX_TO_TILE(start_y + bounds->bottom) + 1;
-            if (tx2 < tx1) {
-                tx2 = image_tile_width;
-            }            
-            while (ty1 != ty2) {
-                if (tile_col_test_range_x(COLLISION_LEFT, ty1, tx1, tx2)) {
-                    return TILE_TO_SUBPX(tile_hit_x) - bounds->right - PX_TO_SUBPX(1);
-                }                
-                ty1++;
-            }
-            return end_pos;
-        case CHECK_DIR_UP:  // Check up
-            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
-            ty2 = SUBPX_TO_TILE(end_pos + bounds->top);
-            if (ty2 > ty1) {
-                ty2 = 0;
-            }
-            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
-            tx2 = SUBPX_TO_TILE(start_x + bounds->right) + 1;
-            while (tx1 != tx2) {
-                if (tile_col_test_range_y(COLLISION_BOTTOM, tx1, ty2, ty1)) {
-                    return TILE_TO_SUBPX(tile_hit_y + 1) - bounds->top;
-                }
-                tx1++;
-            }
-            return end_pos;
-        case CHECK_DIR_DOWN: // Check down
-            ty1 = SUBPX_TO_TILE(start_y + bounds->bottom);
-            ty2 = SUBPX_TO_TILE(end_pos + bounds->bottom);
-            if (ty2 < ty1) {
-                ty2 = image_tile_height;
-            }
-            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
-            tx2 = SUBPX_TO_TILE(start_x + bounds->right) + 1;
-            while (tx1 != tx2) {
-                if (tile_col_test_range_y(COLLISION_TOP, tx1, ty1, ty2)) {
-                    return TILE_TO_SUBPX(tile_hit_y) - bounds->bottom - PX_TO_SUBPX(1);
-                }
-                tx1++;
-            }     
-            return end_pos;
+    ty1 = SUBPX_TO_TILE(start_y + bounds->top);
+    ty2 = SUBPX_TO_TILE(start_y + bounds->bottom) + 1;
+    if (start_x > end_pos) {
+        // Check left
+        tx1 = SUBPX_TO_TILE(start_x + bounds->left);
+        tx2 = SUBPX_TO_TILE(end_pos + bounds->left);
+        if (tx2 > tx1) {
+            tx2 = 0;
+        }
+    }
+    else {
+        // Check right
+        tx1 = SUBPX_TO_TILE(start_x + bounds->right);
+        tx2 = SUBPX_TO_TILE(end_pos + bounds->right);
+        if (tx2 < tx1) {
+            tx2 = image_tile_width;
+        }            
+    }
+    while (ty1 != ty2) {
+        if (tile_col_test_range_x(COLLISION_LEFT, ty1, tx1, tx2)) {
+            return (start_x > end_pos) ?
+                   TILE_TO_SUBPX(tile_hit_x) - bounds->left + TILE_TO_SUBPX(1) : 
+                   TILE_TO_SUBPX(tile_hit_x) - bounds->right - PX_TO_SUBPX(1);
+        }                
+        ty1++;
+    }
+    return end_pos;
+}
+
+static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos) {
+    UBYTE tx1, ty1, tx2, ty2;
+    tx1 = SUBPX_TO_TILE(start_x + bounds->left);
+    tx2 = SUBPX_TO_TILE(start_x + bounds->right) + 1;
+    if (start_y > end_pos) {
+        // Check up
+        ty1 = SUBPX_TO_TILE(start_y + bounds->top);
+        ty2 = SUBPX_TO_TILE(end_pos + bounds->top);
+        if (ty2 > ty1) {
+            ty2 = 0;
+        }
+    }
+    else {
+        // Check down
+        ty1 = SUBPX_TO_TILE(start_y + bounds->bottom);
+        ty2 = SUBPX_TO_TILE(end_pos + bounds->bottom);
+        if (ty2 < ty1) {
+            ty2 = image_tile_height;
+        }
+    }
+    while (tx1 != tx2) {
+        if (tile_col_test_range_y(COLLISION_TOP, tx1, ty1, ty2)) {
+            return (start_y > end_pos) ? 
+                   TILE_TO_SUBPX(tile_hit_y) - bounds->top + TILE_TO_SUBPX(1) : 
+                   TILE_TO_SUBPX(tile_hit_y) - bounds->bottom - PX_TO_SUBPX(1);
+        }
+        tx1++;
     }
     return end_pos;
 }
@@ -165,24 +160,20 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
-                    UBYTE check_dir = (actor->pos.x > params->X) ? CHECK_DIR_LEFT : CHECK_DIR_RIGHT;
-                    params->X = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds, params->X, check_dir);
+                    params->X = check_collision_horizontal(actor->pos.x, actor->pos.y, &actor->bounds, params->X);
                 }
                 // Check for vertical collision
                 if (actor->pos.y != params->Y) {
-                    UBYTE check_dir = (actor->pos.y > params->Y) ? CHECK_DIR_UP : CHECK_DIR_DOWN;
-                    params->Y = check_collision_in_direction(params->X, actor->pos.y, &actor->bounds, params->Y, check_dir);
+                    params->Y = check_collision_vertical(params->X, actor->pos.y, &actor->bounds, params->Y);
                 }
             } else {
                 // Check for vertical collision
                 if (actor->pos.y != params->Y) {
-                    UBYTE check_dir = (actor->pos.y > params->Y) ? CHECK_DIR_UP : CHECK_DIR_DOWN;
-                    params->Y = check_collision_in_direction(actor->pos.x, actor->pos.y, &actor->bounds, params->Y, check_dir);
+                    params->Y = check_collision_vertical(actor->pos.x, actor->pos.y, &actor->bounds, params->Y);
                 }
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
-                    UBYTE check_dir = (actor->pos.x > params->X) ? CHECK_DIR_LEFT : CHECK_DIR_RIGHT;
-                    params->X = check_collision_in_direction(actor->pos.x, params->Y, &actor->bounds, params->X, check_dir);
+                    params->X = check_collision_horizontal(actor->pos.x, params->Y, &actor->bounds, params->X);
                 }
             }
         }
