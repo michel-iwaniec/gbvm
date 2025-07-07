@@ -164,6 +164,26 @@ inline void point_translate_angle_to_delta(upoint16_t *point, uint8_t angle, uin
     point->y = ((COS(angle) * (speed)) >> 7);
 }
 
+// Saturating addition of a signed 16-bit delta onto an unsigned 16-bit base.
+// Clamps to 0 or UINT16_MAX without ever using a 32-bit type.
+inline uint16_t saturating_add_u16(uint16_t base, int16_t delta) {
+    if (delta >= 0) {
+        uint16_t udelta = (uint16_t)delta;
+        // if base + udelta would wrap past UINT16_MAX, clamp to UINT16_MAX
+        if (base > UINT16_MAX - udelta) {
+            return UINT16_MAX;
+        }
+        return base + udelta;
+    } else {
+        uint16_t mag = (uint16_t)(-delta);
+        // if subtracting would underflow below 0, clamp to 0
+        if (mag > base) {
+            return 0;
+        }
+        return base - mag;
+    }
+}
+
 uint8_t isqrt(uint16_t x) NONBANKED;
 uint8_t atan2(int16_t y, int16_t x) BANKED;
 

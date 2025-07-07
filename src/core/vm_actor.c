@@ -31,13 +31,13 @@ BANKREF(VM_ACTOR)
 
 typedef struct act_move_to_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
     UBYTE ATTR;
 } act_move_to_t;
 
 typedef struct act_set_pos_t {
     INT16 ID;
-    INT16 X, Y;
+    UINT16 X, Y;
 } act_set_pos_t;
 
 typedef struct act_set_frame_t {
@@ -150,21 +150,18 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         }
 
         // If moving relative add current position
+        // and prevent overflow
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE)) {
+            params->X = saturating_add_u16(actor->pos.x, (WORD)params->X);
+            params->Y = saturating_add_u16(actor->pos.y, (WORD)params->Y);
+        }
         // and snap destination to either pixels/tiles
         if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
-            params->X = SUBPX_SNAP_PX(params->X + actor->pos.x);
-            params->Y = SUBPX_SNAP_PX(params->Y + actor->pos.y);
+            params->X = SUBPX_SNAP_PX(params->X);
+            params->Y = SUBPX_SNAP_PX(params->Y);
         } else if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
-            params->X = SUBPX_SNAP_TILE(params->X + actor->pos.x);
-            params->Y = SUBPX_SNAP_TILE(params->Y + actor->pos.y);
-        }
-
-       // Prevent overflowing off left/top of screen
-        if (!(actor->pos.x&0x8000) && (params->X&0x8000)) {
-            params->X = 0;
-        }
-        if (!(actor->pos.y&0x8000) && (params->Y&0x8000)) {
-            params->Y = 0;
+            params->X = SUBPX_SNAP_TILE(params->X);
+            params->Y = SUBPX_SNAP_TILE(params->Y);
         }
 
         // Check for collisions in path
