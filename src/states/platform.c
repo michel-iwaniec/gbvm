@@ -617,6 +617,7 @@ void platform_update(void) BANKED
             plat_extra_jumps_counter = plat_extra_jumps;
 #endif
             plat_jump_reduction_vel = 0;
+            actor_set_dir(&PLAYER, PLAYER.dir, TRUE);
             plat_callback_execute(GROUND_INIT);
             break;
         }
