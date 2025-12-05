@@ -124,6 +124,14 @@ static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bo
 void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
+    static INT16 params_ID;
+    static UINT16 params_X;
+    static UINT16 params_Y;
+    static UINT8 params_ATTR;
+    static UINT16 actor_pos_x;
+    static UINT16 actor_pos_y;
+    static UINT8 actor_move_speed;
+    static UINT8 flags;
 
     // indicate waitable state of context
     THIS->waitable = 1;
@@ -131,192 +139,209 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     act_move_to_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
 
-    if (THIS->flags == 0) {
+    params_ID = params->ID;
+    params_X = params->X;
+    params_Y = params->Y;
+    params_ATTR = params->ATTR;
+    actor_pos_x = actor->pos.x;
+    actor_pos_y = actor->pos.y;
+    actor_move_speed = actor->move_speed;
+    flags = THIS->flags;
+
+    if (flags == 0) {
         actor->movement_interrupt = FALSE;
 
         // Switch to moving animation frames
         actor_set_anim_moving(actor);
 
         // Snap to nearest pixel before moving
-        actor->pos.x = SUBPX_SNAP_PX(actor->pos.x);
-        actor->pos.y = SUBPX_SNAP_PX(actor->pos.y);
+        actor_pos_x = SUBPX_SNAP_PX(actor_pos_x);
+        actor_pos_y = SUBPX_SNAP_PX(actor_pos_y);
 
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_DIAGONAL)) {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
-        } if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
+        if (CHK_FLAG(params_ATTR, ACTOR_ATTR_DIAGONAL)) {
+            SET_FLAG(flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
+        } if (CHK_FLAG(params_ATTR, ACTOR_ATTR_H_FIRST)) {
+            SET_FLAG(flags, MOVE_ALLOW_H);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
+            SET_FLAG(flags, MOVE_ALLOW_V);
         }
 
         // If moving relative add current position
         // and prevent overflow
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE)) {
-            params->X = saturating_add_u16(actor->pos.x, (WORD)params->X);
-            params->Y = saturating_add_u16(actor->pos.y, (WORD)params->Y);
+        if (CHK_FLAG(params_ATTR, ACTOR_ATTR_RELATIVE)) {
+            params_X = saturating_add_u16(actor_pos_x, (WORD)params_X);
+            params_Y = saturating_add_u16(actor_pos_y, (WORD)params_Y);
         }
         // and snap destination to either pixels/tiles
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
-            params->X = SUBPX_SNAP_PX(params->X);
-            params->Y = SUBPX_SNAP_PX(params->Y);
-        } else if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
-            params->X = SUBPX_SNAP_TILE(params->X);
-            params->Y = SUBPX_SNAP_TILE(params->Y);
+        if (CHK_FLAG(params_ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
+            params_X = SUBPX_SNAP_PX(params_X);
+            params_Y = SUBPX_SNAP_PX(params_Y);
+        } else if (CHK_FLAG(params_ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
+            params_X = SUBPX_SNAP_TILE(params_X);
+            params_Y = SUBPX_SNAP_TILE(params_Y);
         }
 
         // Check for collisions in path
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_WALLS)) {
-            if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
+        if (CHK_FLAG(params_ATTR, ACTOR_ATTR_CHECK_COLL_WALLS)) {
+            if (CHK_FLAG(params_ATTR, ACTOR_ATTR_H_FIRST)) {
                 // Check for horizontal collision
-                if (actor->pos.x != params->X) {
-                    params->X = check_collision_horizontal(actor->pos.x, actor->pos.y, &actor->bounds, params->X);
+                if (actor_pos_x != params_X) {
+                    params_X = check_collision_horizontal(actor_pos_x, actor_pos_y, &actor->bounds, params_X);
                 }
                 // Check for vertical collision
-                if (actor->pos.y != params->Y) {
-                    params->Y = check_collision_vertical(params->X, actor->pos.y, &actor->bounds, params->Y);
+                if (actor_pos_y != params_Y) {
+                    params_Y = check_collision_vertical(params_X, actor_pos_y, &actor->bounds, params_Y);
                 }
             } else {
                 // Check for vertical collision
-                if (actor->pos.y != params->Y) {
-                    params->Y = check_collision_vertical(actor->pos.x, actor->pos.y, &actor->bounds, params->Y);
+                if (actor_pos_y != params_Y) {
+                    params_Y = check_collision_vertical(actor_pos_x, actor_pos_y, &actor->bounds, params_Y);
                 }
                 // Check for horizontal collision
-                if (actor->pos.x != params->X) {
-                    params->X = check_collision_horizontal(actor->pos.x, params->Y, &actor->bounds, params->X);
+                if (actor_pos_x != params_X) {
+                    params_X = check_collision_horizontal(actor_pos_x, params_Y, &actor->bounds, params_X);
                 }
             }
         }
 
         // Actor already at destination
-        if ((actor->pos.x != params->X)) {
-            SET_FLAG(THIS->flags, MOVE_NEEDED_H);
+        if ((actor_pos_x != params_X)) {
+            SET_FLAG(flags, MOVE_NEEDED_H);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
+            SET_FLAG(flags, MOVE_ALLOW_V);
         }
-        if (actor->pos.y != params->Y) {
-            SET_FLAG(THIS->flags, MOVE_NEEDED_V);
+        if (actor_pos_y != params_Y) {
+            SET_FLAG(flags, MOVE_NEEDED_V);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
+            SET_FLAG(flags, MOVE_ALLOW_H);
         }
 
         // Initialise movement directions
-        if (actor->pos.x > params->X) {
+        if (actor_pos_x > params_X) {
             // Move left
-            SET_FLAG(THIS->flags, MOVE_DIR_H);
+            SET_FLAG(flags, MOVE_DIR_H);
         }
-        if (actor->pos.y > params->Y) {
+        if (actor_pos_y > params_Y) {
             // Move up
-            SET_FLAG(THIS->flags, MOVE_DIR_V);
+            SET_FLAG(flags, MOVE_DIR_V);
         }
 
         THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
-        return;        
+        goto exit_function;
     }
 
     // Interrupt actor movement
     if (actor->movement_interrupt) {
         // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
+        if ((actor_pos_x < params_X) && (actor_pos_x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
+            params_X = (actor_pos_x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
         } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
+            params_X = actor_pos_x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
         }
         // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
+        if ((actor_pos_y < params_Y) && (actor_pos_y & TILE_FRACTION_MASK)) {
+            params_Y = (actor_pos_y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
         } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
+            params_Y = actor_pos_y  & ~TILE_FRACTION_MASK;
         }
         actor->movement_interrupt = FALSE;
     }
 
-    UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(params_ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params_ID & 0x03));
 
     // Move in X Axis
-    if (CHK_FLAG(THIS->flags, MOVE_H) == MOVE_H) {
+    if (CHK_FLAG(flags, MOVE_H) == MOVE_H) {
         // Get hoizontal direction from flags
-        new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_H) ? DIR_LEFT : DIR_RIGHT;
+        new_dir = CHK_FLAG(flags, MOVE_DIR_H) ? DIR_LEFT : DIR_RIGHT;
 
         // Move actor horizontally
-        actor->pos.x += new_dir == DIR_LEFT ? -actor->move_speed : actor->move_speed;
+        actor_pos_x += new_dir == DIR_LEFT ? -actor_move_speed : actor_move_speed;
 
         // Check for actor collision
         actor_t *hit_actor;
-        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
-            actor->pos.x = hit_actor->pos.x +
+        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, (upoint16_t*)&actor_pos_x, actor))) {
+            actor_pos_x = hit_actor->pos.x +
                 (new_dir == DIR_LEFT
                     ? hit_actor->bounds.right - actor->bounds.left + 1
                     : hit_actor->bounds.left - actor->bounds.right - 1
                 );
-            THIS->flags = 0;
+            flags = 0;
             actor_set_anim_idle(actor);
-            return;
+            goto exit_function;
         }
 
         // If first frame moving in this direction update actor direction
-        if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_H)) {
-            SET_FLAG(THIS->flags, MOVE_ACTIVE_H);
+        if (!CHK_FLAG(flags, MOVE_ACTIVE_H)) {
+            SET_FLAG(flags, MOVE_ACTIVE_H);
             actor_set_dir(actor, new_dir, TRUE);
         }
 
         // Check if overshot destination
         if (
-            (new_dir == DIR_LEFT && (actor->pos.x <= params->X)) || // Overshot left
-            (new_dir == DIR_RIGHT && (actor->pos.x >= params->X))   // Overshot right
+            (new_dir == DIR_LEFT && (actor_pos_x <= params_X)) || // Overshot left
+            (new_dir == DIR_RIGHT && (actor_pos_x >= params_X))   // Overshot right
         ) {
             // Reached Horizontal Destination
-            actor->pos.x = params->X;
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
-            CLR_FLAG(THIS->flags, MOVE_H);
+            actor_pos_x = params_X;
+            SET_FLAG(flags, MOVE_ALLOW_V);
+            CLR_FLAG(flags, MOVE_H);
         }
     }
 
     // Move in Y Axis
-    if (CHK_FLAG(THIS->flags, MOVE_V) == MOVE_V) {
+    if (CHK_FLAG(flags, MOVE_V) == MOVE_V) {
         // Get vertical direction from flags
-        new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_V) ? DIR_UP : DIR_DOWN;
+        new_dir = CHK_FLAG(flags, MOVE_DIR_V) ? DIR_UP : DIR_DOWN;
 
         // Move actor vertically
-        actor->pos.y += new_dir == DIR_UP ? -actor->move_speed : actor->move_speed;
+        actor_pos_y += new_dir == DIR_UP ? -actor_move_speed : actor_move_speed;
 
         // Check for actor collision
         actor_t *hit_actor;
-        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
-            actor->pos.y = hit_actor->pos.y +
+        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, (upoint16_t*)&actor_pos_x, actor))) { 
+            actor_pos_y = hit_actor->pos.y +
                 (new_dir == DIR_UP
                     ? hit_actor->bounds.bottom - actor->bounds.top + 1
                     : hit_actor->bounds.top - actor->bounds.bottom - 1
                 );
-            THIS->flags = 0;
+            flags = 0;
             actor_set_anim_idle(actor);
-            return;
+            goto exit_function;
         }
 
         // If first frame moving in this direction update actor direction
-        if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_V)) {
-            SET_FLAG(THIS->flags, MOVE_ACTIVE_V);
+        if (!CHK_FLAG(flags, MOVE_ACTIVE_V)) {
+            SET_FLAG(flags, MOVE_ACTIVE_V);
             actor_set_dir(actor, new_dir, TRUE);
         }
 
         // Check if overshot destination
         if (
-            (new_dir == DIR_UP && (actor->pos.y <= params->Y)) || // Overshot above
-            (new_dir == DIR_DOWN &&  (actor->pos.y >= params->Y)) // Overshot below
+            (new_dir == DIR_UP && (actor_pos_y <= params_Y)) || // Overshot above
+            (new_dir == DIR_DOWN &&  (actor_pos_y >= params_Y)) // Overshot below
          ) {
-            actor->pos.y = params->Y;
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
-            CLR_FLAG(THIS->flags, MOVE_V);
+            actor_pos_y = params_Y;
+            SET_FLAG(flags, MOVE_ALLOW_H);
+            CLR_FLAG(flags, MOVE_V);
         }
     }
 
     // Actor reached destination
-    if (!CHK_FLAG(THIS->flags, MOVE_NEEDED_H | MOVE_NEEDED_V)) {
-        THIS->flags = MOVE_INACTIVE;
+    if (!CHK_FLAG(flags, MOVE_NEEDED_H | MOVE_NEEDED_V)) {
+        flags = MOVE_INACTIVE;
         actor_set_anim_idle(actor);
-        return;
+        goto exit_function;
     }
 
     THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+
+exit_function:
+    actor->pos.x = actor_pos_x;
+    actor->pos.y = actor_pos_y;
+    params->X = params_X;
+    params->Y = params_Y;
+    //params->ATTR = params_ATTR;
+    THIS->flags = flags;
     return;
 }
 
