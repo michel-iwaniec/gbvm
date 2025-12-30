@@ -334,12 +334,13 @@ void activate_actor(actor_t *actor) BANKED {
 
 void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
     actor_t *actor = actors_inactive_head;
+    UBYTE x_end = x + SCREEN_TILE_REFRES_W;
 
     while (actor) {
         UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
         if (ty == y) {
             UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
-            if ((tx + 1 > x) && (tx < x + SCREEN_TILE_REFRES_W)) {
+            if ((tx >= x) && (tx < x_end)) {
                 actor_t * next = actor->next;
                 activate_actor_impl(actor);
                 actor = next;
