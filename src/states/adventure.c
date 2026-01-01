@@ -748,7 +748,8 @@ static void move_and_collide(UBYTE mask)
     if (mask & COL_CHECK_ACTORS)
     {
         actor_t *hit_actor;
-        hit_actor = actor_overlapping_player();
+        actor_t *initial_hit_actor;
+        initial_hit_actor = hit_actor = actor_overlapping_player();
         adv_attached_actor = NULL;
 
         while (hit_actor != NULL) {
@@ -780,6 +781,7 @@ static void move_and_collide(UBYTE mask)
             adv_attached_prev_x = hit_actor->pos.x;
             adv_attached_prev_y = hit_actor->pos.y; 
         } else {
+            hit_actor = initial_hit_actor;
             adv_attached_actor = NULL;
             collision_dir = DIR_NONE;
             adv_attached_prev_x = 0;
