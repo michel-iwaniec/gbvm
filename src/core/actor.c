@@ -353,20 +353,20 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
 
 void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     actor_t *actor = actors_inactive_head;
-    UBYTE y_max = y + SCREEN_TILE_REFRES_H;
+    UBYTE y_end = y + SCREEN_TILE_REFRES_H;
 
     while (actor) {
-        actor_t *next = actor->next;        
-        if ( // Left or right edge is in column x
-            ((SUBPX_TO_TILE(actor->pos.x + actor->bounds.left ) == x) ||
-             (SUBPX_TO_TILE(actor->pos.x + actor->bounds.right) == x)) &&
-            // Bottom is below start of column y
-            SUBPX_TO_TILE(actor->pos.y + actor->bounds.bottom) >= y &&
-            // Top is above end of column y
-            SUBPX_TO_TILE(actor->pos.y + actor->bounds.top) <= y_max) {    
+        UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
+        if (tx == x) {
+            UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
+            if ((ty >= y) && (ty < y_end)) {
+                actor_t * next = actor->next;
                 activate_actor_impl(actor);
+                actor = next;
+                continue;
+            }
         }
-        actor = next;
+        actor = actor->next;
     }
 }
 
