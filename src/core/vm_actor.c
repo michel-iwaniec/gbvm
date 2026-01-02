@@ -33,6 +33,7 @@ typedef struct act_move_to_t {
     INT16 ID;
     UINT16 X, Y;
     UBYTE ATTR;
+    UBYTE _padding;
 } act_move_to_t;
 
 typedef struct act_set_pos_t {
@@ -128,7 +129,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     // indicate waitable state of context
     THIS->waitable = 1;
 
-    act_move_to_t * params = VM_REF_TO_PTR(idx);
+    act_move_to_t * params = THIS->stack_ptr - (sizeof(act_move_to_t) / sizeof(INT16));
     actor = actors + (UBYTE)(params->ID);
 
     if (THIS->flags == 0) {
