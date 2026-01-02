@@ -122,7 +122,7 @@ static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bo
     return end_pos;
 }
 
-void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_to(SCRIPT_CTX * THIS) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
 
@@ -210,7 +210,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             SET_FLAG(THIS->flags, MOVE_DIR_V);
         }
 
-        THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+        THIS->PC -= INSTRUCTION_SIZE;
         return;        
     }
 
@@ -317,7 +317,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         return;
     }
 
-    THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+    THIS->PC -= INSTRUCTION_SIZE;
     return;
 }
 
