@@ -29,13 +29,15 @@ static projectile_t *projectile;
 static projectile_t *prev_projectile;
 
 void projectiles_update(void) NONBANKED {
+    static uint8_t tmp_iterator;
+
     projectile_t *next;
 
     projectile = projectiles_active_head;
     prev_projectile = NULL;
 
     _save_bank = CURRENT_BANK;
-    uint8_t tmp_iterator = game_time;
+    tmp_iterator = game_time;
     while (projectile) {
         if (projectile->def.life_time == 0) {
             // Remove projectile
@@ -64,7 +66,7 @@ void projectiles_update(void) NONBANKED {
         projectile->pos.x += projectile->delta_pos.x;
         projectile->pos.y -= projectile->delta_pos.y;
 
-        if ((tmp_iterator++ & 0x1) == 0) {
+        if ((tmp_iterator++ & 0x3) == 0) {
             actor_t *hit_actor = NULL;
             if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
                 if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
