@@ -81,6 +81,7 @@ void actors_update(void) BANKED {
     static actor_t *actor;
     static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
     static uint8_t actor_tile16_x, actor_tile16_y;
+    static uint8_t tmp_iterator; 
 
     // Convert scroll pos to 16px tile coordinates
     // allowing full range of scene to be represented in 7 bits
@@ -91,7 +92,8 @@ void actors_update(void) BANKED {
     screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
     screen_tile16_y_end = screen_tile16_y + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H;
 
-    uint8_t tmp_iterator = game_time;
+    tmp_iterator = game_time;
+
     actor = actors_active_tail;
     while (actor) {
 
@@ -114,7 +116,7 @@ void actors_update(void) BANKED {
             continue;
         }
 
-        if ((tmp_iterator++ & 0x7) == 0) {
+        if ((tmp_iterator++ & 0x3) == 0) {
             // Bottom right coordinate of actor in 16px tile coordinates
             // Subtract bounding box estimate width/height
             // and offset by 64 to allow signed comparisons with screen tiles
