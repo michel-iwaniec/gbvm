@@ -25,8 +25,8 @@ BANKREF(VM_ACTOR)
 #define MOVE_NEEDED_V              128
 #define MOVE_H                     (MOVE_ALLOW_H | MOVE_NEEDED_H)
 #define MOVE_V                     (MOVE_ALLOW_V | MOVE_NEEDED_V)
-#define TILE_FRACTION_MASK         0b1111111
-#define ONE_TILE_DISTANCE          128
+#define TILE_FRACTION_MASK         0b11111111
+#define ONE_TILE_DISTANCE          256
 
 
 typedef struct act_move_to_t {
