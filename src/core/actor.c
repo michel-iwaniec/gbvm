@@ -180,24 +180,15 @@ void actors_render(void) NONBANKED {
         if (emote_timer < EMOTE_BOUNCE_FRAMES) {
             screen_y += emote_offsets[emote_timer];
         }
-        // if sprite mode is 8x16
-        if (LCDC_REG & LCDCF_OBJ16) {
-            allocated_hardware_sprites += move_metasprite(
-                emote_metasprite_8_16,
-                allocated_sprite_tiles,
-                allocated_hardware_sprites,
-                screen_x,
-                screen_y
-            );
-        } else {
-            allocated_hardware_sprites += move_metasprite(
-                emote_metasprite_8_8,
-                allocated_sprite_tiles,
-                allocated_hardware_sprites,
-                screen_x,
-                screen_y
-            );
-        }
+
+        const metasprite_t * emote_metasprite = ((LCDC_REG & LCDCF_OBJ16) ? emote_metasprite_8_16 : emote_metasprite_8_8);
+        allocated_hardware_sprites += move_metasprite(
+            emote_metasprite,
+            allocated_sprite_tiles,
+            allocated_hardware_sprites,
+            screen_x,
+            screen_y
+        );
     }
 
     static bool window_hide_actors;
