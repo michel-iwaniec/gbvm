@@ -132,7 +132,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor = actors + (UBYTE)(params->ID);
 
     if (THIS->flags == 0) {
-        actor->movement_interrupt = FALSE;
+        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
 
         // Switch to moving animation frames
         actor_set_anim_moving(actor);
@@ -214,7 +214,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 
     // Interrupt actor movement
-    if (actor->movement_interrupt) {
+    if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
         // Set new X destination to next tile
         if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
             params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
@@ -227,7 +227,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         } else {
             params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
         }
-        actor->movement_interrupt = FALSE;
+        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
     UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
@@ -324,16 +324,16 @@ void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
 
-    actor->movement_interrupt = TRUE;
+    SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
 }
 
 void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     if (actor == &PLAYER) {
-        actor->hidden = FALSE;
+        CLR_FLAG(actor->flags, ACTOR_FLAG_HIDDEN);
     } else {
-        actor->disabled = FALSE;
+        CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
         activate_actor(actor);
     }
 }
@@ -342,9 +342,9 @@ void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     if (actor == &PLAYER) {
-        actor->hidden = TRUE;
+        SET_FLAG(actor->flags, ACTOR_FLAG_HIDDEN);
     } else {
-        actor->disabled = TRUE;
+        SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
         deactivate_actor(actor);
     }
 }
@@ -533,10 +533,6 @@ void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) 
 
 void vm_actor_set_flags(SCRIPT_CTX * THIS, INT16 idx, UBYTE flags, UBYTE mask) OLDCALL BANKED {
     actor_t * actor = actors + *(UBYTE *)VM_REF_TO_PTR(idx);
-
-    if (mask & ACTOR_FLAG_PINNED)      actor->pinned            = (flags & ACTOR_FLAG_PINNED);
-    if (mask & ACTOR_FLAG_HIDDEN)      actor->hidden            = (flags & ACTOR_FLAG_HIDDEN);
-    if (mask & ACTOR_FLAG_ANIM_NOLOOP) actor->anim_noloop       = (flags & ACTOR_FLAG_ANIM_NOLOOP);
-    if (mask & ACTOR_FLAG_COLLISION)   actor->collision_enabled = (flags & ACTOR_FLAG_COLLISION);
-    if (mask & ACTOR_FLAG_PERSISTENT)  actor->persistent        = (flags & ACTOR_FLAG_PERSISTENT);
+    actor->flags |= (mask & flags);
+    actor->flags &= ~(mask & ~flags);
 }
