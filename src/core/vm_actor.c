@@ -125,11 +125,13 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
     static SFR flags;
+    static SFR ATTR;
     flags = THIS->flags;
     // indicate waitable state of context
     THIS->waitable = 1;
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);
+    ATTR = params->ATTR;
     actor = actors + (UBYTE)(params->ID);
 
     if (flags == 0) {
@@ -142,9 +144,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         actor->pos.x = SUBPX_SNAP_PX(actor->pos.x);
         actor->pos.y = SUBPX_SNAP_PX(actor->pos.y);
 
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_DIAGONAL)) {
+        if (CHK_FLAG(ATTR, ACTOR_ATTR_DIAGONAL)) {
             SET_FLAG(flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
-        } if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
+        } if (CHK_FLAG(ATTR, ACTOR_ATTR_H_FIRST)) {
             SET_FLAG(flags, MOVE_ALLOW_H);
         } else {
             SET_FLAG(flags, MOVE_ALLOW_V);
@@ -152,22 +154,22 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // If moving relative add current position
         // and prevent overflow
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE)) {
+        if (CHK_FLAG(ATTR, ACTOR_ATTR_RELATIVE)) {
             params->X = saturating_add_u16(actor->pos.x, (WORD)params->X);
             params->Y = saturating_add_u16(actor->pos.y, (WORD)params->Y);
         }
         // and snap destination to either pixels/tiles
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
+        if (CHK_FLAG(ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
             params->X = SUBPX_SNAP_PX(params->X);
             params->Y = SUBPX_SNAP_PX(params->Y);
-        } else if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
+        } else if (CHK_FLAG(ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
             params->X = SUBPX_SNAP_TILE(params->X);
             params->Y = SUBPX_SNAP_TILE(params->Y);
         }
 
         // Check for collisions in path
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_WALLS)) {
-            if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
+        if (CHK_FLAG(ATTR, ACTOR_ATTR_CHECK_COLL_WALLS)) {
+            if (CHK_FLAG(ATTR, ACTOR_ATTR_H_FIRST)) {
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
                     params->X = check_collision_horizontal(actor->pos.x, actor->pos.y, &actor->bounds, params->X);
@@ -231,7 +233,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         actor->movement_interrupt = FALSE;
     }
 
-    UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
 
     // Move in X Axis
     if (CHK_FLAG(flags, MOVE_H) == MOVE_H) {
