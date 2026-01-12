@@ -16,6 +16,7 @@
 #include "collision.h"
 #include "ui.h"
 #include "vm.h"
+#include "macro.h"
 
 #ifdef STRICT
     #include <gb/bgb_emu.h>
@@ -77,11 +78,8 @@ void actors_init(void) BANKED {
 
 void player_init(void) BANKED {
     actor_set_anim_idle(&PLAYER);
-    PLAYER.hidden = FALSE;
-    PLAYER.disabled = FALSE;
-    PLAYER.anim_noloop = FALSE;
-    PLAYER.pinned = FALSE;
-    PLAYER.collision_enabled = TRUE;
+    CLR_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED | ACTOR_FLAG_ANIM_NOLOOP | ACTOR_FLAG_PINNED);
+    SET_FLAG(PLAYER.flags, ACTOR_FLAG_COLLISION);
 }
 
 void actors_update(void) BANKED {
@@ -109,7 +107,7 @@ void actors_update(void) BANKED {
             actor->frame++;
             // Check reached end of animation
             if (actor->frame == actor->frame_end) {
-                if (actor->anim_noloop) {
+                if (CHK_FLAG(actor->flags, ACTOR_FLAG_ANIM_NOLOOP)) {
                     actor->frame--;
                     // TODO: execute onAnimationEnd here + set to ANIM_PAUSED?
                 } else {
@@ -118,7 +116,7 @@ void actors_update(void) BANKED {
             }
         }
 
-       if (actor->pinned) {
+       if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
             actor = actor->prev;
             continue;
         }
@@ -145,8 +143,8 @@ void actors_update(void) BANKED {
                 if (!VM_ISLOCKED()) {
                     if (actor == &PLAYER) {
                         player_is_offscreen = TRUE;
-                    } else if (actor->persistent) {
-                        actor->disabled = TRUE;
+                    } else if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+                        SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                     } else {
                         deactivate_actor_impl(actor);
                     }
@@ -157,8 +155,8 @@ void actors_update(void) BANKED {
 
             if (actor == &PLAYER) {
                 player_is_offscreen = FALSE;
-            } else if (actor->persistent) {
-                actor->disabled = FALSE;
+            } else if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+                CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
             }
         }
 
@@ -198,14 +196,14 @@ void actors_render(void) NONBANKED {
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
     
-    actor = (PLAYER.active) ? ((player_is_offscreen) ? PLAYER.prev : &PLAYER) : actors_active_tail;
+    actor = CHK_FLAG(PLAYER.flags, ACTOR_FLAG_ACTIVE) ? ((player_is_offscreen) ? PLAYER.prev : &PLAYER) : actors_active_tail;
     // Render all actors
     for (; (actor); actor = actor->prev){
-        if (actor->hidden || actor->disabled) {
+        if (CHK_FLAG(actor->flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
            continue;
         }
         
-        if (actor->pinned) {
+        if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
             screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
         } else {
             screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
@@ -242,9 +240,9 @@ static void deactivate_actor_impl(actor_t *actor) {
         return;
     }
 #endif
-    if (!actor->active) return;
+    if (!CHK_FLAG(actor->flags, ACTOR_FLAG_ACTIVE)) return;
     if (actor == &PLAYER) return;
-    actor->active = FALSE;
+    CLR_FLAG(actor->flags, ACTOR_FLAG_ACTIVE);
     DL_REMOVE_ITEM(actors_active_head, actor);
     DL_PUSH_HEAD(actors_inactive_head, actor);
     if ((actor->hscript_update & SCRIPT_TERMINATED) == 0) {
@@ -272,10 +270,10 @@ static void activate_actor_impl(actor_t *actor) {
         return;
     }
 #endif
-    if (actor->active || actor->disabled) return;
+    if (CHK_FLAG(actor->flags, ACTOR_FLAG_ACTIVE | ACTOR_FLAG_DISABLED)) return;
 
     // Check if on screen before activating to avoid flash of offscreen actors
-    if (actor != &PLAYER && !actor->pinned && !actor->persistent) {
+    if (actor != &PLAYER && !CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED) && !CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
         UBYTE actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
@@ -296,7 +294,7 @@ static void activate_actor_impl(actor_t *actor) {
         }
     }
 
-    actor->active = TRUE;
+    SET_FLAG(actor->flags, ACTOR_FLAG_ACTIVE);
     actor_set_anim_idle(actor);
     DL_REMOVE_ITEM(actors_inactive_head, actor);
     DL_PUSH_HEAD(actors_active_head, actor);
@@ -384,7 +382,7 @@ void actor_set_dir(actor_t *actor, direction_e dir, UBYTE moving) BANKED {
 
 actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED {
     for (actor_t *actor = actors_active_head; (actor); actor = actor->next) {
-        if ((!inc_noclip && !actor->collision_enabled))
+        if ((!inc_noclip && !CHK_FLAG(actor->flags, ACTOR_FLAG_COLLISION)))
             continue;
 
         UBYTE a_tx = SUBPX_TO_TILE(actor->pos.x), a_ty = SUBPX_TO_TILE(actor->pos.y);
@@ -448,7 +446,7 @@ actor_t *actor_overlapping_player_from(actor_t *start_actor) BANKED {
     const UWORD a_bottom = PLAYER.pos.y + PLAYER.bounds.bottom;
 
     while (actor) {
-        if (!actor->collision_enabled) {
+        if (!CHK_FLAG(actor->flags, ACTOR_FLAG_COLLISION)) {
             actor = actor->prev;
             continue;
         }
@@ -473,7 +471,7 @@ actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore)
     const UWORD a_bottom = offset->y + bb->bottom;
 
     while (actor) {
-        if (actor == ignore || !actor->collision_enabled) {
+        if (actor == ignore || !CHK_FLAG(actor->flags, ACTOR_FLAG_COLLISION)) {
             actor = actor->prev;
             continue;
         }
