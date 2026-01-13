@@ -195,23 +195,53 @@ void actors_render(void) NONBANKED {
 #else
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
-    
-    actor = CHK_FLAG(PLAYER.flags, ACTOR_FLAG_ACTIVE) ? ((player_is_offscreen) ? PLAYER.prev : &PLAYER) : actors_active_tail;
-    // Render all actors
-    for (; (actor); actor = actor->prev){
-        if (CHK_FLAG(actor->flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
-           continue;
+
+    // Render player
+    if (!player_is_offscreen) {
+        if (CHK_FLAG(PLAYER.flags, ACTOR_FLAG_PINNED)) {
+            screen_x = SUBPX_TO_PX(PLAYER.pos.x) + 8;
+            screen_y = SUBPX_TO_PX(PLAYER.pos.y) + 8;
+        } else {
+            screen_x = (SUBPX_TO_PX(PLAYER.pos.x) + 8) - draw_scroll_x;
+            screen_y = (SUBPX_TO_PX(PLAYER.pos.y) + 8) - draw_scroll_y;
         }
-        
+
+        bool skip_player =
+            CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED) ||
+             !CHK_FLAG(PLAYER.flags, ACTOR_FLAG_ACTIVE) ||
+            (window_hide_actors &&
+             ((screen_x + 8) > WX_REG) &&
+             ((screen_y - 8) > WY_REG));
+
+        if (!skip_player) {
+            SWITCH_ROM(PLAYER.sprite.bank);
+            spritesheet_t *sprite = PLAYER.sprite.ptr;
+
+            allocated_hardware_sprites += move_metasprite(
+                *(sprite->metasprites + PLAYER.frame),
+                PLAYER.base_tile,
+                allocated_hardware_sprites,
+                screen_x,
+                screen_y
+            );
+        }
+    }
+
+    actor = PLAYER.prev;
+
+    // Render other actors
+    while (actor) {         
         if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
             screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
         } else {
             screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
         }
 
-        if (((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+        if (CHK_FLAG(actor->flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED) || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+            actor = actor->prev;
             continue;
         }
+
         SWITCH_ROM(actor->sprite.bank);
         spritesheet_t *sprite = actor->sprite.ptr;
 
@@ -222,6 +252,8 @@ void actors_render(void) NONBANKED {
             screen_x,
             screen_y
         );
+
+        actor = actor->prev;
     }
 
     SWITCH_ROM(_save);
