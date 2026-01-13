@@ -87,6 +87,7 @@ void actors_update(void) BANKED {
     static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
     static uint8_t actor_tile16_x, actor_tile16_y;
     static uint8_t tmp_iterator; 
+    static SFR actor_flags;
 
     // Convert scroll pos to 16px tile coordinates
     // allowing full range of scene to be represented in 7 bits
@@ -101,13 +102,14 @@ void actors_update(void) BANKED {
 
     actor = actors_active_tail;
     while (actor) {
+        actor_flags = actor->flags;
 
         // Check reached animation tick frame
         if ((actor->anim_tick != ANIM_PAUSED) && (game_time & actor->anim_tick) == 0) {
             actor->frame++;
             // Check reached end of animation
             if (actor->frame == actor->frame_end) {
-                if (CHK_FLAG(actor->flags, ACTOR_FLAG_ANIM_NOLOOP)) {
+                if (CHK_FLAG(actor_flags, ACTOR_FLAG_ANIM_NOLOOP)) {
                     actor->frame--;
                     // TODO: execute onAnimationEnd here + set to ANIM_PAUSED?
                 } else {
@@ -116,7 +118,7 @@ void actors_update(void) BANKED {
             }
         }
 
-       if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
+       if (CHK_FLAG(actor_flags, ACTOR_FLAG_PINNED)) {
             actor = actor->prev;
             continue;
         }
@@ -143,7 +145,7 @@ void actors_update(void) BANKED {
                 if (!VM_ISLOCKED()) {
                     if (actor == &PLAYER) {
                         player_is_offscreen = TRUE;
-                    } else if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+                    } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
                         SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                     } else {
                         deactivate_actor_impl(actor);
@@ -155,7 +157,7 @@ void actors_update(void) BANKED {
 
             if (actor == &PLAYER) {
                 player_is_offscreen = FALSE;
-            } else if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+            } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
                 CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
             }
         }
