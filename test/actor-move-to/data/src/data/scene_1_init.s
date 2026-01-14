@@ -83,6 +83,118 @@ _scene_1_init::
         VM_SET_CONST            .LOCAL_ACTOR, 3
         VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
 
+        ; Actor Move To
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    0
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
+            .R_INT16    1280
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_DIAGONAL)/
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
+            .R_STOP
+        ; -- Move Actor
+        VM_SET_CONST            .LOCAL_ACTOR, 4
+        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    4
+            .R_INT16    2048
+            .R_INT16    -2048
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    5
+            .R_INT16    -1280
+            .R_INT16    0
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    6
+            .R_INT16    -1280
+            .R_INT16    -7680
+            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    7
+            .R_INT16    1280
+            .R_INT16    -1280
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move To
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    0
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
+            .R_INT16    2048
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_H_FIRST)/
+            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
+            .R_STOP
+        ; -- Move Actor
+        VM_SET_CONST            .LOCAL_ACTOR, 8
+        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    8
+            .R_INT16    0
+            .R_INT16    512
+            .R_INT16    ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    8
+            .R_INT16    1280
+            .R_INT16    -1280
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
+        ; Actor Move Relative
+        ; -- Calculate coordinate values
+        VM_RPN
+            .R_INT16    9
+            .R_INT16    256
+            .R_INT16    0
+            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+            .R_STOP
+        ; -- Move Actor
+        VM_ACTOR_MOVE_TO        .ARG3
+        VM_POP                  4
+
         VM_TEST_TERMINATE .TEST_WAIT_VBL
 
         ; Stop Script
