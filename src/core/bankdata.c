@@ -5,7 +5,7 @@
 #include "bankdata.h"
 #include "scroll.h"
 
-static SFR _save;         // functions below are not reentrant
+static FASTUBYTE _save;    // functions below are not reentrant
 
 void SetBankedBkgData(UBYTE i, UBYTE l, const unsigned char* ptr, UBYTE bank) OLDCALL NONBANKED NAKED {
     i; l; ptr; bank;

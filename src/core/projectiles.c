@@ -24,7 +24,7 @@ void projectiles_init(void) BANKED {
     }
 }
 
-static SFR _save_bank;
+static FASTUBYTE _save_bank;
 static projectile_t *projectile;
 static projectile_t *prev_projectile;
 

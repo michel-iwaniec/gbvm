@@ -533,8 +533,8 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
 // executes one step in the passed context
 // return zero if script end
 // bank with VM code must be active
-static SFR current_fn_bank;
-static SFR current_fn_nargs;
+static FASTUBYTE current_fn_bank;
+static FASTUBYTE current_fn_nargs;
 static UINT16 current_sp;
 UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR {
     CTX;
