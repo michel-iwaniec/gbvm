@@ -64,7 +64,7 @@ void projectiles_update(void) NONBANKED {
 
         // Move projectile
         projectile->pos.x += projectile->delta_pos.x;
-        projectile->pos.y -= projectile->delta_pos.y;
+        projectile->pos.y += projectile->delta_pos.y;
 
         if ((tmp_iterator++ & 0x3) == 0) {
             actor_t *hit_actor = NULL;
@@ -174,20 +174,38 @@ void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
         projectile->pos.x = pos->x;
         projectile->pos.y = pos->y;
 
-        INT8 sinv = SIN(angle), cosv = COS(angle);
+        if (angle == ANGLE_LEFT) {
+            projectile->pos.x -= initial_offset;
+            projectile->delta_pos.x = -projectile->def.move_speed;
+            projectile->delta_pos.y = 0;
+        } else if (angle == ANGLE_RIGHT) {
+            projectile->pos.x += initial_offset;
+            projectile->delta_pos.x = projectile->def.move_speed;
+            projectile->delta_pos.y = 0;
+        } else if (angle == ANGLE_UP) {
+            projectile->pos.y -= initial_offset;
+            projectile->delta_pos.x = 0;
+            projectile->delta_pos.y = -projectile->def.move_speed;
+        } else if (angle == ANGLE_DOWN) {
+            projectile->pos.y += initial_offset;
+            projectile->delta_pos.x = 0;
+            projectile->delta_pos.y = projectile->def.move_speed;            
+        } else {
+            INT8 sinv = SIN(angle), cosv = COS(angle);
 
-        // Offset by initial amount
-        while (initial_offset > 0xFFu) {
-            projectile->pos.x += ((sinv * (UINT8)(0xFF)) >> 7);
-            projectile->pos.y -= ((cosv * (UINT8)(0xFF)) >> 7);
-            initial_offset -= 0xFFu;
-        }
-        if (initial_offset > 0) {
-            projectile->pos.x += ((sinv * (UINT8)(initial_offset)) >> 7);
-            projectile->pos.y -= ((cosv * (UINT8)(initial_offset)) >> 7);
-        }
+            // Offset by initial amount
+            while (initial_offset > 0xFFu) {
+                projectile->pos.x += ((sinv * (UINT8)(0xFF)) >> 7);
+                projectile->pos.y -= ((cosv * (UINT8)(0xFF)) >> 7);
+                initial_offset -= 0xFFu;
+            }
+            if (initial_offset > 0) {
+                projectile->pos.x += ((sinv * (UINT8)(initial_offset)) >> 7);
+                projectile->pos.y -= ((cosv * (UINT8)(initial_offset)) >> 7);
+            }
 
-        point_translate_angle_to_delta(&projectile->delta_pos, angle, projectile->def.move_speed);
+            point_translate_angle_to_delta(&projectile->delta_pos, angle, projectile->def.move_speed);
+        }
 
         LL_REMOVE_HEAD(projectiles_inactive_head);
         LL_PUSH_HEAD(projectiles_active_head, projectile);
