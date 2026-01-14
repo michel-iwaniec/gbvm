@@ -625,6 +625,36 @@ OP_VM_ACTOR_MOVE_TO             = 0x30
         .db OP_VM_ACTOR_MOVE_TO, #>IDX, #<IDX
 .endm
 
+OP_VM_ACTOR_MOVE_TO_INIT        = 0x8F
+.macro VM_ACTOR_MOVE_TO_INIT IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_INIT, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_X           = 0x90
+.macro VM_ACTOR_MOVE_TO_X IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_X, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_Y           = 0x91
+.macro VM_ACTOR_MOVE_TO_Y IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_Y, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_XY          = 0x92
+.macro VM_ACTOR_MOVE_TO_XY IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_XY, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_SET_DIR_X           = 0x93
+.macro VM_ACTOR_MOVE_TO_SET_DIR_X IDX
+        .db OP_VM_ACTOR_MOVE_TO_SET_DIR_X, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_SET_DIR_Y           = 0x94
+.macro VM_ACTOR_MOVE_TO_SET_DIR_Y IDX
+        .db OP_VM_ACTOR_MOVE_TO_SET_DIR_Y, #>IDX, #<IDX
+.endm
+
 OP_VM_ACTOR_MOVE_CANCEL         = 0x88
 ;-- Cancels movement of actor.
 ; @param ACTOR Variable that contains the actor number.
