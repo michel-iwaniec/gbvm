@@ -43,6 +43,8 @@ UBYTE pending_w_i;
 INT16 current_row, new_row;
 INT16 current_col, new_col;
 
+static SFR _save_bank;
+
 void scroll_init(void) BANKED {
     draw_scroll_x   = 0;
     draw_scroll_y   = 0;
@@ -228,7 +230,7 @@ void scroll_queue_col(UBYTE x, UBYTE y) {
 
 /* Update pending (up to 5) rows */
 void scroll_load_pending_row(void) NONBANKED {
-    UINT8 _save = CURRENT_BANK;
+    _save_bank = CURRENT_BANK;
     UBYTE width = MIN(pending_w_i, PENDING_BATCH_SIZE);
 
 #ifdef CGB
@@ -246,12 +248,12 @@ void scroll_load_pending_row(void) NONBANKED {
     pending_w_x += width;
     pending_w_i -= width;
 
-    SWITCH_ROM(_save);
+    SWITCH_ROM(_save_bank);
 }
 
 
 void scroll_load_row(UBYTE x, UBYTE y) NONBANKED {
-    UINT8 _save = CURRENT_BANK;
+    _save_bank = CURRENT_BANK;
 
 #ifdef CGB
     if (_is_CGB) {  // Color Column Load
@@ -265,11 +267,11 @@ void scroll_load_row(UBYTE x, UBYTE y) NONBANKED {
     SWITCH_ROM(image_bank);
     set_bkg_submap(x, y, MIN(SCREEN_TILE_REFRES_W, image_tile_width), 1, image_ptr, image_tile_width);
 
-    SWITCH_ROM(_save);
+    SWITCH_ROM(_save_bank);
 }
 
 void scroll_load_col(UBYTE x, UBYTE y, UBYTE height) NONBANKED {
-    UINT8 _save = CURRENT_BANK;
+    _save_bank = CURRENT_BANK;
  
 #ifdef CGB
     if (_is_CGB) {  // Color Column Load
@@ -283,11 +285,11 @@ void scroll_load_col(UBYTE x, UBYTE y, UBYTE height) NONBANKED {
     unsigned char* map = image_ptr + image_tile_width * y + x;
     SWITCH_ROM(image_bank);
     set_bkg_submap(x, y, 1, height, image_ptr, image_tile_width);
-    SWITCH_ROM(_save);
+    SWITCH_ROM(_save_bank);
 }
 
 void scroll_load_pending_col(void) NONBANKED {
-    UINT8 _save = CURRENT_BANK;
+    _save_bank = CURRENT_BANK;
     UBYTE height = MIN(pending_h_i, PENDING_BATCH_SIZE);
 
     SWITCH_ROM(image_bank);
@@ -306,5 +308,5 @@ void scroll_load_pending_col(void) NONBANKED {
     pending_h_y += height;
     pending_h_i -= height;
 
-    SWITCH_ROM(_save);
+    SWITCH_ROM(_save_bank);
 }
