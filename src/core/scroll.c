@@ -43,7 +43,7 @@ UBYTE pending_w_i;
 INT16 current_row, new_row;
 INT16 current_col, new_col;
 
-static SFR _save_bank;
+static FASTUBYTE _save_bank;
 
 void scroll_init(void) BANKED {
     draw_scroll_x   = 0;
