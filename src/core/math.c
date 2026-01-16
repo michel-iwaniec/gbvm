@@ -32,7 +32,7 @@ UBYTE isqrt(uint16_t x) NAKED BANKED {
        x;
 ___asm
        ldhl sp, #7
-       ld a, (hl+)
+       ld a, (hl-)
        ld e, (hl)
 	
 	ld bc, #0xFFE0
