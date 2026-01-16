@@ -28,18 +28,52 @@ int8_t COS(uint8_t a) BANKED {
     return sine_wave[(uint8_t)((uint8_t)(a) + 64u)];
 }
 
-UBYTE isqrt(uint16_t x) BANKED {
-    uint16_t m, y, b;
-    m = 0x4000;
-    y = 0;
-    while (m != 0) {
-        b = y | m;
-        y >>= 1;
-        if (x >= b) {
-            x -= b;
-            y |= m;
-        }
-        m >>= 2;
-    }
-    return (UBYTE)y;
+UBYTE isqrt(uint16_t x) NAKED BANKED {
+       x;
+___asm
+       ldhl sp, #7
+       ld a, (hl+)
+       ld e, (hl)
+	
+	ld bc, #0xFFE0
+	ld h, b
+	ld l, b
+	ld d, b
+	
+	cp #0x40
+	jr c, 1$
+	sub #0x40
+	dec h
+	ld d, #0xEF
+	jr 1$
+0$:
+	add hl, bc
+	dec d
+	dec d
+1$:
+	add d
+	jr c, 0$
+
+	sub d
+	ld d, h
+	ld h, a
+	
+	ld a, e
+	ld e, l
+	ld l, a
+	
+	jr 3$
+2$:
+	dec e
+	dec e
+3$:
+	add hl, de
+	jr c, 2$
+       
+	rr d
+	ld a, e
+	rra
+	cpl
+	ret
+__endasm;
 }
