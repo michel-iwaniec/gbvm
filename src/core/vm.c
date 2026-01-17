@@ -470,20 +470,14 @@ void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 b
     dummy0; dummy1; THIS; bank; ptr; // suppress warnings
 #if defined(__SDCC) && defined(NINTENDO)
 __asm
-        ldhl sp, #6
+        ldhl sp, #8
         ld a, (hl+)
-        ld e, a
-        ld a, (hl+)
-        ld d, a
-        push de
-        ld a, (hl+)
-        ld e, a
+        ldh (__current_bank), a
+        ld (_rROMB0), a
         ld a, (hl+)
         ld h, (hl)
         ld l, a
-        call ___sdcc_bcall_ehl
-        pop hl
-        ret
+        jp (hl)
 __endasm;
 #endif
 }
@@ -616,8 +610,8 @@ __asm
 
         push hl                 ; pushing THIS
 
-        ld (hl), e
-        inc hl
+        ld a, e
+        ld (hl+), a
         ld (hl), d              ; PC = PC + sizeof(instruction) + args_len
 
         ld hl, #_current_sp
