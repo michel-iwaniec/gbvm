@@ -610,8 +610,8 @@ __asm
 
         push hl                 ; pushing THIS
 
-        ld (hl), e
-        inc hl
+        ld a, e
+        ld (hl+), a
         ld (hl), d              ; PC = PC + sizeof(instruction) + args_len
 
         ld hl, #_current_sp
