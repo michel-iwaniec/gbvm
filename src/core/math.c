@@ -61,15 +61,15 @@ ___asm
 	ld a, e
 	ld e, l
 	ld l, a
-	
-	jr 3$
+
+
 2$:
-	dec e
-	dec e
-3$:
 	add hl, de
+	dec e
+	dec e
 	jr c, 2$
-       
+	
+    inc e
 	rr d
 	ld a, e
 	rra
