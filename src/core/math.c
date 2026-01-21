@@ -36,7 +36,7 @@ UBYTE isqrt(uint16_t x)
 {
        x;
 #if defined(__SDCC) && defined(NINTENDO)
-___asm
+__asm
 	ldhl sp, #7
 	ld a, (hl-)
 	ld e, (hl)
