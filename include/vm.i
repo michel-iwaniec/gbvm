@@ -252,6 +252,7 @@ OP_VM_RPN          = 0x15
 .ISQRT             = 'Q'
 .ATAN2             = 'T'
 .RND               = 'r'
+.NEG               = 'n'
 ;.EQ                = 1
 ;.LT                = 2
 ;.LTE               = 3

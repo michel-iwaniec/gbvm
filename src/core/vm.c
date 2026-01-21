@@ -362,6 +362,7 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
                 // unary
                 case '@': *B = abs(*B); continue;
                 case '~': *B = ~(*B);   continue;
+                case 'n': *B = -(*B);   continue;
                 case 'Q': *B = isqrt((UWORD)*B); continue;
                 case 'r': *B = randw() % (UWORD)*B; continue;
                 // terminator
