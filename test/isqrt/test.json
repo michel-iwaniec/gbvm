@@ -1,0 +1,6 @@
+{
+  "description": "actor-move-to",
+  "rules": [
+    "ASSERT_EQ(DATA('WRAM', ADDR('_success', 'WRAM')), 1)"
+  ]
+}
