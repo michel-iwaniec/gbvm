@@ -1,5 +1,5 @@
 {
-  "description": "actor-move-to",
+  "description": "isqrt",
   "rules": [
     "ASSERT_EQ(DATA('WRAM', ADDR('_success', 'WRAM')), 1)"
   ]
