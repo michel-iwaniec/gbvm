@@ -145,6 +145,9 @@ void actors_update(void) BANKED {
                     if (actor == &PLAYER || CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
                         SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                     } else {
+                        if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
+                            CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                        }                        
                         deactivate_actor_impl(actor);
                     }
                 } else {
