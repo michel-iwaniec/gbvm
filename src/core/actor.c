@@ -56,7 +56,6 @@ UBYTE screen_x, screen_y;
 actor_t * invalid;
 UBYTE player_moving;
 UBYTE player_iframes;
-UBYTE player_is_offscreen;
 actor_t * player_collision_actor;
 actor_t * emote_actor;
 UBYTE emote_timer;
@@ -143,21 +142,19 @@ void actors_update(void) BANKED {
                 // Deactivate if offscreen
                 actor_t * prev = actor->prev;
                 if (!VM_ISLOCKED()) {
-                    if (actor == &PLAYER) {
-                        player_is_offscreen = TRUE;
-                    } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+                    if (actor == &PLAYER || CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
                         SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                     } else {
                         deactivate_actor_impl(actor);
                     }
+                } else {
+                    SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                 }
                 actor = prev;
                 continue;
             }
 
-            if (actor == &PLAYER) {
-                player_is_offscreen = FALSE;
-            } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+            if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
                 CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
             }
         }
@@ -199,7 +196,7 @@ void actors_render(void) NONBANKED {
 #endif
 
     // Render player
-    if (!player_is_offscreen && !CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
+    if (!CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
         if (CHK_FLAG(PLAYER.flags, ACTOR_FLAG_PINNED)) {
             screen_x = SUBPX_TO_PX(PLAYER.pos.x) + 8, screen_y = SUBPX_TO_PX(PLAYER.pos.y) + 8;
         } else {
