@@ -230,7 +230,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
-    UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS);
 
     // Move in X Axis
     if (CHK_FLAG(THIS->flags, MOVE_H) == MOVE_H) {
@@ -619,7 +619,7 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
-    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
 
     if (params->X == actor->pos.x) {
         // Already at destination
@@ -632,9 +632,8 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         // Check for actor collision
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
-            actor->pos.x = hit_actor->pos.x + hit_actor->bounds.right - actor->bounds.left + 1;
-            params->Y = actor->pos.y & ~TILE_FRACTION_MASK;
-            SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+            actor->pos.x += actor->move_speed;
+            params->Y = actor->pos.y;
             actor_set_anim_idle(actor);
             return;
         }
@@ -653,9 +652,8 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         // Check for actor collision
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
-            actor->pos.x = hit_actor->pos.x + hit_actor->bounds.left - actor->bounds.right - 1;
-            params->Y = actor->pos.y & ~TILE_FRACTION_MASK;
-            SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+            actor->pos.x -= actor->move_speed;
+            params->Y = actor->pos.y;
             actor_set_anim_idle(actor);
             return;
         }
@@ -699,7 +697,7 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
-    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
 
     if (params->Y == actor->pos.y) {
         // Already at destination
@@ -712,9 +710,8 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         // Check for actor collision
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
-            actor->pos.y = hit_actor->pos.y + hit_actor->bounds.bottom - actor->bounds.top + 1;
-            params->X = actor->pos.x & ~TILE_FRACTION_MASK;
-            SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+            actor->pos.y += actor->move_speed;
+            params->X = actor->pos.x;
             actor_set_anim_idle(actor);
             return;
         }
@@ -732,9 +729,8 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         // Check for actor collision
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
-            actor->pos.y = hit_actor->pos.y + hit_actor->bounds.top - actor->bounds.bottom - 1;
-            params->X = actor->pos.x & ~TILE_FRACTION_MASK;
-            SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+            actor->pos.y -= actor->move_speed;
+            params->X = actor->pos.x;
             actor_set_anim_idle(actor);
             return;
         }
@@ -777,7 +773,7 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
         CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
-    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
+    UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
 
     UBYTE reached_x = params->X == actor->pos.x;
     UBYTE reached_y = params->Y == actor->pos.y;
@@ -790,8 +786,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
             // Check for actor collision
             actor_t *hit_actor;
             if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
-                actor->pos.x = hit_actor->pos.x + hit_actor->bounds.right - actor->bounds.left + 1;
-                SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+                actor->pos.x += actor->move_speed;
+                params->Y = actor->pos.y;
                 reached_x = TRUE;
             }
 
@@ -808,8 +804,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
             // Check for actor collision
             actor_t *hit_actor;
             if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
-                actor->pos.x = hit_actor->pos.x + hit_actor->bounds.left - actor->bounds.right - 1;
-                SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+                actor->pos.x -= actor->move_speed;
+                params->Y = actor->pos.y;
                 reached_x = TRUE;
             }
 
@@ -830,8 +826,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
             // Check for actor collision
             actor_t *hit_actor;
             if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
-                actor->pos.y = hit_actor->pos.y + hit_actor->bounds.bottom - actor->bounds.top + 1;
-                SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+                actor->pos.y += actor->move_speed;
+                params->X = actor->pos.x;
                 reached_y = TRUE;
             }
 
@@ -847,8 +843,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
             // Check for actor collision
             actor_t *hit_actor;
             if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
-                actor->pos.y = hit_actor->pos.y + hit_actor->bounds.top - actor->bounds.bottom - 1;
-                SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+                actor->pos.y -= actor->move_speed;
+                params->X = actor->pos.x;
                 reached_y = TRUE;
             }
 
