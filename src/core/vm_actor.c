@@ -548,7 +548,6 @@ void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BAN
     CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
 
     // Switch to moving animation frames
-    actor_set_anim_moving(actor);
 
     // Snap to nearest pixel before moving
     actor->pos.x = SUBPX_SNAP_PX(actor->pos.x);
@@ -886,4 +885,13 @@ void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     if (params->Y != actor->pos.y) {
         actor_set_dir(actor, params->Y < actor->pos.y ? DIR_UP : DIR_DOWN, TRUE);
     }
+}
+
+void vm_actor_set_anim_moving(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+    actor_t *actor;
+
+    act_move_to_t * params = VM_REF_TO_PTR(idx);
+    actor = actors + (UBYTE)(params->ID);
+    
+    actor_set_anim(actor, actor->dir + N_DIRECTIONS);
 }

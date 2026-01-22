@@ -702,6 +702,14 @@ OP_VM_ACTOR_MOVE_TO_SET_DIR_Y           = 0x94
         .db OP_VM_ACTOR_MOVE_TO_SET_DIR_Y, #>IDX, #<IDX
 .endm
 
+OP_VM_ACTOR_SET_ANIM_MOVING             = 0x95
+;-- Set actor to moving animation of current facing direction.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+.macro VM_ACTOR_SET_ANIM_MOVING IDX
+        .db OP_VM_ACTOR_SET_ANIM_MOVING, #>IDX, #<IDX
+.endm
+
 OP_VM_ACTOR_MOVE_CANCEL         = 0x88
 ;-- Cancels movement of actor.
 ; @param ACTOR Variable that contains the actor number.
