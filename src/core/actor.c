@@ -37,12 +37,12 @@ BANKREF(ACTOR)
 const BYTE emote_offsets[] = {2, 1, 0, -1, -2, -3, -4, -5, -6, -5, -4, -3, -2, -1, 0};
 
 const metasprite_t emote_metasprite_8_16[]  = {
-    {0, 0, 0, 7}, {0, 8, 2, 7}, 
+    {8, 8, 0, 7}, {0, 8, 2, 7}, 
     {metasprite_end}
 };
 
 const metasprite_t emote_metasprite_8_8[]  = {
-    {0, 0, 0, 7}, {0, 8, 2, 7},
+    {8, 8, 0, 7}, {0, 8, 2, 7},
     {8, -8, 1, 7}, {0, 8, 3, 7},
     {metasprite_end}
 };
