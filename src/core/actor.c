@@ -37,12 +37,12 @@ BANKREF(ACTOR)
 const BYTE emote_offsets[] = {2, 1, 0, -1, -2, -3, -4, -5, -6, -5, -4, -3, -2, -1, 0};
 
 const metasprite_t emote_metasprite_8_16[]  = {
-    {0, 0, 0, 7}, {0, 8, 2, 7}, 
+    {8, 8, 0, 7}, {0, 8, 2, 7}, 
     {metasprite_end}
 };
 
 const metasprite_t emote_metasprite_8_8[]  = {
-    {0, 0, 0, 7}, {0, 8, 2, 7},
+    {8, 8, 0, 7}, {0, 8, 2, 7},
     {8, -8, 1, 7}, {0, 8, 3, 7},
     {metasprite_end}
 };
@@ -56,7 +56,6 @@ UBYTE screen_x, screen_y;
 actor_t * invalid;
 UBYTE player_moving;
 UBYTE player_iframes;
-UBYTE player_is_offscreen;
 actor_t * player_collision_actor;
 actor_t * emote_actor;
 UBYTE emote_timer;
@@ -143,21 +142,22 @@ void actors_update(void) BANKED {
                 // Deactivate if offscreen
                 actor_t * prev = actor->prev;
                 if (!VM_ISLOCKED()) {
-                    if (actor == &PLAYER) {
-                        player_is_offscreen = TRUE;
-                    } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+                    if (actor == &PLAYER || CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
                         SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                     } else {
+                        if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
+                            CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                        }                        
                         deactivate_actor_impl(actor);
                     }
+                } else {
+                    SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
                 }
                 actor = prev;
                 continue;
             }
 
-            if (actor == &PLAYER) {
-                player_is_offscreen = FALSE;
-            } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+            if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
                 CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
             }
         }
@@ -173,8 +173,8 @@ void actors_render(void) NONBANKED {
     if (emote_actor) {
         SWITCH_ROM(emote_actor->sprite.bank);
         spritesheet_t *sprite = emote_actor->sprite.ptr;
-        screen_x = SUBPX_TO_PX(emote_actor->pos.x) - scroll_x + 8 + sprite->emote_origin.x;
-        screen_y = SUBPX_TO_PX(emote_actor->pos.y) - scroll_y + 8 + sprite->emote_origin.y;
+        screen_x = SUBPX_TO_PX(emote_actor->pos.x) - scroll_x + sprite->emote_origin.x;
+        screen_y = SUBPX_TO_PX(emote_actor->pos.y) - scroll_y + sprite->emote_origin.y;
 
         SWITCH_ROM(BANK(ACTOR));  // bank of emote_offsets[] and emote_metasprite[]
         if (emote_timer < EMOTE_BOUNCE_FRAMES) {
@@ -199,11 +199,13 @@ void actors_render(void) NONBANKED {
 #endif
 
     // Render player
-    if (!player_is_offscreen && !CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
+    if (!CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
         if (CHK_FLAG(PLAYER.flags, ACTOR_FLAG_PINNED)) {
-            screen_x = SUBPX_TO_PX(PLAYER.pos.x) + 8, screen_y = SUBPX_TO_PX(PLAYER.pos.y) + 8;
+            screen_x = SUBPX_TO_PX(PLAYER.pos.x);
+            screen_y = SUBPX_TO_PX(PLAYER.pos.y);
         } else {
-            screen_x = (SUBPX_TO_PX(PLAYER.pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(PLAYER.pos.y) + 8) - draw_scroll_y;
+            screen_x = SUBPX_TO_PX(PLAYER.pos.x) - draw_scroll_x;
+            screen_y = SUBPX_TO_PX(PLAYER.pos.y) - draw_scroll_y;
         }
 
 
@@ -228,9 +230,11 @@ void actors_render(void) NONBANKED {
         }
         
         if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
-            screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
+            screen_x = SUBPX_TO_PX(actor->pos.x);
+            screen_y = SUBPX_TO_PX(actor->pos.y);
         } else {
-            screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
+            screen_x = SUBPX_TO_PX(actor->pos.x) - draw_scroll_x;
+            screen_y = SUBPX_TO_PX(actor->pos.y) - draw_scroll_y;
         }
 
         if (((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
