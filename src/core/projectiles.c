@@ -91,10 +91,10 @@ void projectiles_update(void) NONBANKED {
             }
         }
 
-        UBYTE screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x + 8,
-              screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y + 8;
+        UBYTE screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x,
+              screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y;
 
-        if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
+        if ((screen_x > DEVICE_SCREEN_PX_WIDTH - 8) || (screen_y > DEVICE_SCREEN_PX_HEIGHT - 8)) {
             // Remove projectile
             projectile_t *next = projectile->next;
             LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
@@ -127,8 +127,8 @@ void projectiles_render(void) NONBANKED {
     _save_bank = _current_bank;
 
     while (projectile) {
-        UINT8 screen_x = (SUBPX_TO_PX(projectile->pos.x) + 8) - draw_scroll_x,
-              screen_y = (SUBPX_TO_PX(projectile->pos.y) + 8) - draw_scroll_y;
+        UINT8 screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x,
+              screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y;
 
         SWITCH_ROM(projectile->def.sprite.bank);
         spritesheet_t *sprite = projectile->def.sprite.ptr;
