@@ -72,11 +72,12 @@ _scene_transition_init::
             .R_INT16    0
             .R_INT16    768
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Load Scene
         ; -- Fetch player actorPosition
@@ -126,11 +127,12 @@ _scene_transition_init::
             .R_INT16    0
             .R_INT16    -768
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Load Scene
         ; -- Fetch player actorPosition

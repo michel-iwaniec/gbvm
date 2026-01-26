@@ -25,11 +25,12 @@ _trigger_13_interact::
             .R_INT16    9
             .R_INT16    0
             .R_INT16    256
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Direction To
         VM_SET_CONST            .LOCAL_ACTOR, 9
@@ -59,11 +60,12 @@ _trigger_13_interact::
             .R_INT16    0
             .R_INT16    -512
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Direction To
         VM_SET_CONST            .LOCAL_ACTOR, 0
@@ -85,11 +87,12 @@ _trigger_13_interact::
             .R_INT16    9
             .R_INT16    0
             .R_INT16    -256
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Deactivate
         VM_SET_CONST            .LOCAL_ACTOR, 9

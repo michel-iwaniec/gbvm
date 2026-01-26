@@ -20,11 +20,12 @@ _script_enemy_ship_movement__0::
             .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    -1280
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Move Relative
         ; -- Calculate coordinate values
@@ -32,11 +33,12 @@ _script_enemy_ship_movement__0::
             .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    1536
             .R_INT16    -1536
-            .R_INT16    ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_XY     .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Active
         VM_SET                  .LOCAL_ACTOR, .SCRIPT_ARG_0_ACTOR
@@ -57,11 +59,12 @@ _script_enemy_ship_movement__0::
             .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    1536
             .R_INT16    -1536
-            .R_INT16    ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_XY     .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Move Relative
         ; -- Calculate coordinate values
@@ -69,11 +72,12 @@ _script_enemy_ship_movement__0::
             .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    -5120
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_DIAGONAL | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_RESERVE              -4
         VM_RET_FAR_N            1

@@ -836,7 +836,7 @@ static void player_set_jump_anim(void)
 #ifdef FEAT_PLATFORM_WALL_JUMP
 static void wall_check(void)
 {
-    if (plat_wall_col != 0 && plat_wall_slide)
+    if (plat_wall_col != 0 && plat_wall_slide && plat_next_state != GROUND_STATE)
     {
         plat_next_state = WALL_STATE;
     }
