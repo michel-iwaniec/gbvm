@@ -20,11 +20,12 @@ _actor_2_update::
             .R_INT16    3
             .R_INT16    1280
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Active
         VM_SET_CONST            .LOCAL_ACTOR, 3
@@ -38,11 +39,12 @@ _actor_2_update::
             .R_INT16    3
             .R_INT16    0
             .R_INT16    1280
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Active
         VM_SET_CONST            .LOCAL_ACTOR, 3
@@ -56,11 +58,12 @@ _actor_2_update::
             .R_INT16    3
             .R_INT16    -1280
             .R_INT16    0
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Active
         VM_SET_CONST            .LOCAL_ACTOR, 3
@@ -74,11 +77,12 @@ _actor_2_update::
             .R_INT16    3
             .R_INT16    0
             .R_INT16    -1280
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
             .R_STOP
         ; -- Move Actor
-        VM_ACTOR_MOVE_TO        .ARG3
-        VM_POP                  4
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Set Active
         VM_SET_CONST            .LOCAL_ACTOR, 3
