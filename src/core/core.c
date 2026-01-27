@@ -84,7 +84,8 @@ void process_VM(void) {
                 scroll_update();
                 actors_update();
                 actors_render();
-                projectiles_update();                                   // update and render projectiles
+                projectiles_update();                                   // update projectiles
+                projectiles_render();                                   // render projectiles
 
                 ui_update();
                 actors_handle_player_collision();
