@@ -235,24 +235,6 @@ OP_VM_SET_CONST   = 0x14
 .endm
 
 OP_VM_RPN          = 0x15
-.ADD               = '+'
-.SUB               = '-'
-.MUL               = '*'
-.DIV               = '/'
-.MOD               = '%'
-.B_AND             = '&'
-.B_OR              = '|'
-.B_XOR             = '^'
-.B_NOT             = '~'
-.SHL               = 'L'
-.SHR               = 'R'
-.ABS               = '@'
-.MIN               = 'm'
-.MAX               = 'M'
-.ISQRT             = 'Q'
-.ATAN2             = 'T'
-.RND               = 'r'
-.NEG               = 'n'
 ;.EQ                = 1
 ;.LT                = 2
 ;.LTE               = 3
@@ -262,6 +244,25 @@ OP_VM_RPN          = 0x15
 .AND               = 7
 .OR                = 8
 .NOT               = 9
+.ADD               = 10
+.SUB               = 11
+.MUL               = 12
+.DIV               = 13
+.MOD               = 14
+.B_AND             = 15
+.B_OR              = 16
+.B_XOR             = 17
+.SHL               = 18
+.SHR               = 19
+.MIN               = 20
+.MAX               = 21
+.ATAN2             = 22
+.ABS               = 23
+.B_NOT             = 24
+.NEG               = 25
+.ISQRT             = 26
+.RND               = 27
+
 ;-- Reverse Polish Notation (RPN) calculator, returns result(s) on the VM stack.
 .macro VM_RPN
         .db OP_VM_RPN

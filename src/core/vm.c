@@ -333,38 +333,38 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
         } else {
             A = THIS->stack_ptr - 2; B = A + 1;
             switch ((UINT8)op) {
-                // arithmetics
-                case '+': *A = *A  +  *B; break;
-                case '-': *A = *A  -  *B; break;
-                case '*': *A = *A  *  *B; break;
-                case '/': *A = *A  /  *B; break;
-                case '%': *A = *A  %  *B; break;
                 // logical
-                case VM_OP_EQ:  *A = (*A  ==  *B); break;
-                case VM_OP_LT:  *A = (*A  <   *B); break;
-                case VM_OP_LE:  *A = (*A  <=  *B); break;
-                case VM_OP_GT:  *A = (*A  >   *B); break;
-                case VM_OP_GE:  *A = (*A  >=  *B); break;
-                case VM_OP_NE:  *A = (*A  !=  *B); break;
-                case VM_OP_AND: *A = ((bool)(*A)  &&  (bool)(*B)); break;
-                case VM_OP_OR:  *A = ((bool)(*A)  ||  (bool)(*B)); break;
-                case VM_OP_NOT: *B = !(*B); continue;
+                case VM_OP_EQ    : *A = (*A == *B); break;
+                case VM_OP_LT    : *A = (*A <  *B); break;
+                case VM_OP_LE    : *A = (*A <= *B); break;
+                case VM_OP_GT    : *A = (*A >  *B); break;
+                case VM_OP_GE    : *A = (*A >= *B); break;
+                case VM_OP_NE    : *A = (*A != *B); break;
+                case VM_OP_AND   : *A = ((bool)(*A) && (bool)(*B)); break;
+                case VM_OP_OR    : *A = ((bool)(*A) || (bool)(*B)); break;
+                case VM_OP_NOT   : *B = !(*B); continue;
+                // arithmetics   
+                case VM_OP_ADD   : *A = *A + *B; break;
+                case VM_OP_SUB   : *A = *A - *B; break;
+                case VM_OP_MUL   : *A = *A * *B; break;
+                case VM_OP_DIV   : *A = *A / *B; break;
+                case VM_OP_MOD   : *A = *A % *B; break;
                 // bit
-                case '&': *A = *A  &  *B; break;
-                case '|': *A = *A  |  *B; break;
-                case '^': *A = *A  ^  *B; break;
-                case 'L': *A = *(uint16_t *)A << (*B & 0x0f); break;
-                case 'R': *A = *(uint16_t *)A >> (*B & 0x0f); break;
+                case VM_OP_B_AND : *A = *A & *B; break;
+                case VM_OP_B_OR  : *A = *A | *B; break;
+                case VM_OP_B_XOR : *A = *A ^ *B; break;
+                case VM_OP_SHL   : *A = *(uint16_t *)A << (*B & 0x0f); break;
+                case VM_OP_SHR   : *A = *(uint16_t *)A >> (*B & 0x0f); break;
                 // funcs
-                case 'm': *A = (*A < *B) ? *A : *B; break;  // min
-                case 'M': *A = (*A > *B) ? *A : *B; break;  // max
-                case 'T': *A = atan2((WORD)*A, (WORD)*B); break;
+                case VM_OP_MIN   : *A = (*A < *B) ? *A : *B; break;
+                case VM_OP_MAX   : *A = (*A > *B) ? *A : *B; break;
+                case VM_OP_ATAN2 : *A = atan2((WORD)*A, (WORD)*B); break;
                 // unary
-                case '@': *B = abs(*B); continue;
-                case '~': *B = ~(*B);   continue;
-                case 'n': *B = -(*B);   continue;
-                case 'Q': *B = isqrt((UWORD)*B); continue;
-                case 'r': *B = randw() % (UWORD)*B; continue;
+                case VM_OP_ABS   : *B = abs(*B); continue;
+                case VM_OP_B_NOT : *B = ~(*B);   continue;
+                case VM_OP_NEG   : *B = -(*B);   continue;
+                case VM_OP_ISQRT : *B = isqrt((UWORD)*B); continue;
+                case VM_OP_RND   : *B = randw() % (UWORD)*B; continue;
                 // terminator
                 default:
                     SWITCH_ROM(_save);             // restore bank
