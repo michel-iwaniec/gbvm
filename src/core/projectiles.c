@@ -125,13 +125,13 @@ void projectiles_update(void) NONBANKED {
 }
 
 void projectiles_render(void) NONBANKED {
-    projectile = projectiles_active_head;
+    projectile_t* projectile = projectiles_active_head;
 
     _save_bank = _current_bank;
 
     while (projectile) {
-        UINT8 screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x,
-              screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y;
+        UINT8 screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x;
+        UINT8 screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y;
 
         SWITCH_ROM(projectile->def.sprite.bank);
         spritesheet_t *sprite = projectile->def.sprite.ptr;
