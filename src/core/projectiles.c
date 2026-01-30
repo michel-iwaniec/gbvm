@@ -45,8 +45,6 @@ static UBYTE max_y;
 void projectiles_update(void) NONBANKED {
     static uint8_t tmp_iterator;
 
-    if (!projectiles_active_head) return;
-
     projectile = projectiles_active_head;
     prev_projectile = NULL;
 
