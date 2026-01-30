@@ -82,7 +82,7 @@ void player_init(void) BANKED {
 }
 
 void actors_update(void) BANKED {
-    static actor_t *actor;
+    actor_t *actor;
     static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
     static uint8_t actor_tile16_x, actor_tile16_y;
     static uint8_t tmp_iterator; 
@@ -168,7 +168,7 @@ void actors_update(void) BANKED {
 
 void actors_render(void) NONBANKED {
     UBYTE _save = CURRENT_BANK;
-    static actor_t *actor;
+    actor_t *actor;
 
     if (emote_actor) {
         SWITCH_ROM(emote_actor->sprite.bank);
