@@ -8,6 +8,7 @@
 
 #include "vm.h"
 #include "math.h"
+#include "compat.h"
 
 BANKREF(VM_MAIN)
 
@@ -545,9 +546,6 @@ __asm
         ld h, a                 ; hl offset of the script
         inc de
 
-        ldh a, (__current_bank)
-        push af
-
         ld a, (de)              ; bank of the script
         ldh (__current_bank), a
         ld (_rROMB0), a         ; switch bank with vm code
@@ -633,16 +631,9 @@ __asm
         pop hl
         ld sp, hl
 
-        pop af
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; restore bank
-
         ld a, #1                ; instruction executed
         ret
 3$:
-        pop af
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; restore bank
 
         xor a                   ; VM_STOP encountered
         ret
@@ -754,6 +745,9 @@ UBYTE script_detach_hthread(UBYTE ID) BANKED {
 UBYTE script_runner_update(void) NONBANKED {
     static UBYTE waitable;
     static UBYTE counter;
+    static FASTUBYTE _save;
+
+    _save = CURRENT_BANK;
 
     // if locked then execute last context until it is unlocked or terminated
     if (!vm_lock_state) old_executing_ctx = 0, executing_ctx = first_ctx;
@@ -777,7 +771,11 @@ UBYTE script_runner_update(void) NONBANKED {
             if (old_executing_ctx) executing_ctx = old_executing_ctx->next; else executing_ctx = first_ctx;
         } else {
             // check exception
-            if (vm_exception_code) return RUNNER_EXCEPTION;
+            if (vm_exception_code)
+            {
+                SWITCH_ROM(_save);
+                return RUNNER_EXCEPTION;
+            }
             // loop until waitable state or quant is expired
             if (!(executing_ctx->waitable) && (counter--)) continue;
             // exit while loop if context switching is locked
@@ -788,6 +786,8 @@ UBYTE script_runner_update(void) NONBANKED {
             counter = INSTRUCTIONS_PER_QUANT;
         }
     }
+    SWITCH_ROM(_save);
+
     // return 0 if all threads are finished
     if (first_ctx == 0) return RUNNER_DONE;
     // return 1 if all threads in waitable state else return 2
