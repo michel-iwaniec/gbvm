@@ -609,12 +609,6 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         } else {
             params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
         }
-        // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
-        } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
-        }
         CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
     }
 
@@ -632,7 +626,6 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
             actor->pos.x += actor->move_speed;
-            params->Y = actor->pos.y;
             actor_set_anim_idle(actor);
             return;
         }
@@ -652,7 +645,6 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
             actor->pos.x -= actor->move_speed;
-            params->Y = actor->pos.y;
             actor_set_anim_idle(actor);
             return;
         }
@@ -681,12 +673,6 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
 
     // Interrupt actor movement
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
-        // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
-        } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
-        }
         // Set new Y destination to next tile
         if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
             params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
@@ -710,7 +696,6 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
             actor->pos.y += actor->move_speed;
-            params->X = actor->pos.x;
             actor_set_anim_idle(actor);
             return;
         }
@@ -729,7 +714,6 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
         actor_t *hit_actor;
         if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
             actor->pos.y -= actor->move_speed;
-            params->X = actor->pos.x;
             actor_set_anim_idle(actor);
             return;
         }
