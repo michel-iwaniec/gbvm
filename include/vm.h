@@ -79,16 +79,18 @@ typedef struct SCRIPT_CTX {
 // termination flag
 #define SCRIPT_TERMINATED 0x8000
 
+#define VM_OP_STOP  0
+
 // logical operators
-#define VM_OP_EQ  1
-#define VM_OP_LT  2
-#define VM_OP_LE  3
-#define VM_OP_GT  4
-#define VM_OP_GE  5
-#define VM_OP_NE  6
-#define VM_OP_AND 7
-#define VM_OP_OR  8
-#define VM_OP_NOT 9
+#define VM_OP_EQ    1
+#define VM_OP_LT    2
+#define VM_OP_LE    3
+#define VM_OP_GT    4
+#define VM_OP_GE    5
+#define VM_OP_NE    6
+#define VM_OP_AND   7
+#define VM_OP_OR    8
+#define VM_OP_NOT   9
 
 // math operators
 #define VM_OP_ADD   10
@@ -109,6 +111,20 @@ typedef struct SCRIPT_CTX {
 #define VM_OP_NEG   25
 #define VM_OP_ISQRT 26
 #define VM_OP_RND   27
+
+// memory operators
+#define VM_OP_INT8          -1
+#define VM_OP_INT16         -2
+#define VM_OP_REF           -3
+#define VM_OP_REF_IND       -4
+#define VM_OP_REF_SET       -5
+#define VM_OP_REF_SET_IND   -6
+#define VM_OP_REF_MEM       -7
+#define VM_OP_REF_MEM_SET   -8
+
+#define VM_OP_MEM_I8        'i'
+#define VM_OP_MEM_U8        'u'
+#define VM_OP_MEM_I16       'I'
 
 // shared context memory
 extern UWORD script_memory[VM_HEAP_SIZE + (VM_MAX_CONTEXTS * VM_CONTEXT_STACK_SIZE)];  // maximum stack depth is 16 words

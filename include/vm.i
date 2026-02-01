@@ -235,6 +235,7 @@ OP_VM_SET_CONST   = 0x14
 .endm
 
 OP_VM_RPN          = 0x15
+.STOP              = 0
 ;.EQ                = 1
 ;.LT                = 2
 ;.LTE               = 3
@@ -263,44 +264,53 @@ OP_VM_RPN          = 0x15
 .ISQRT             = 26
 .RND               = 27
 
+.INT8              = -1
+.INT16             = -2
+.REF               = -3
+.REF_IND           = -4
+.REF_SET           = -5
+.REF_SET_IND       = -6
+.REF_MEM TYP       = -7
+.REF_MEM_SET       = -8
+
 ;-- Reverse Polish Notation (RPN) calculator, returns result(s) on the VM stack.
 .macro VM_RPN
         .db OP_VM_RPN
 .endm
 .macro .R_INT8 ARG0
-        .db -1
+        .db .INT8
         .db #<ARG0
 .endm
 .macro .R_INT16 ARG0
-        .db -2
+        .db .INT16
         .dw #ARG0
 .endm
 .macro .R_REF ARG0
-        .db -3
+        .db .REF
         .dw #ARG0
 .endm
 .macro .R_REF_IND ARG0
-        .db -4
+        .db .REF_IND
         .dw #ARG0
 .endm
 .macro .R_REF_SET ARG0
-        .db -5
+        .db .REF_SET
         .dw #ARG0
 .endm
 .macro .R_REF_SET_IND ARG0
-        .db -6
+        .db .REF_SET_IND
         .dw #ARG0
 .endm
 .MEM_I8            = 'i'
 .MEM_U8            = 'u'
 .MEM_I16           = 'I'
 .macro .R_REF_MEM TYP, ADDR
-        .db -7
+        .db .REF_MEM
         .db #<TYP
         .dw #ADDR
 .endm
 .macro .R_REF_MEM_SET TYP, ADDR
-        .db -8
+        .db .REF_MEM_SET
         .db #<TYP
         .dw #ADDR
 .endm
@@ -308,7 +318,7 @@ OP_VM_RPN          = 0x15
         .db ARG0
 .endm
 .macro .R_STOP
-        .db 0
+        .db .STOP
 .endm
 
 OP_VM_JOIN       = 0x16
