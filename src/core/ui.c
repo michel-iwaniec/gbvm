@@ -384,7 +384,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
             case 0x09:
                 break;
             case '\n':  // 0x0a
-                // carriage return
+                // new line
                 ui_dest_ptr = ui_dest_base += 32u;
                 if (vwf_current_offset) ui_print_reset();
                 break;
@@ -392,7 +392,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 text_palette = (((*++ui_text_ptr) - 1u) & 0x07u);
                 break;
             case '\r':  // 0x0d
-                // line feed
+                // new line and scroll the text area
                 if ((ui_dest_ptr + 32u) > (UBYTE *)((((UWORD)text_scroll_addr + ((UWORD)text_scroll_height << 5)) & 0xFFE0) - 1)) {
                     scroll_rect(text_scroll_addr, text_scroll_width, text_scroll_height, text_scroll_fill);
 #ifdef CGB
