@@ -1037,6 +1037,15 @@ OP_VM_OVERLAY_SETPOS    = 0x42
         VM_OVERLAY_SETPOS 0, .MENU_CLOSED_Y
 .endm
 
+;-- Loads text in memory similar to VM_LOAD_TEXT but expect parameters on the VM stack, then pop N parameters
+; .ARG0 -- bank of the format string and the arguments array
+; .ARG1 -- address of the format string
+; format string parameters start from .ARG2 (varargs)
+OP_VM_LOAD_TEXT_EX      = 0x43
+.macro VM_LOAD_TEXT_EX N
+        .db OP_VM_LOAD_TEXT_EX, #<N
+.endm
+
 OP_VM_OVERLAY_WAIT      = 0x44
 .UI_NONMODAL            = 0
 .UI_MODAL               = 1

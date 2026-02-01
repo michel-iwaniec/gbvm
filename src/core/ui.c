@@ -44,7 +44,7 @@ UBYTE text_ff_joypad;
 UBYTE text_ff;
 UBYTE text_bkg_fill;
 
-unsigned char ui_text_data[TEXT_MAX_LENGTH];
+unsigned char ui_text_data[TEXT_MAX_LENGTH + 1];
 
 // char printer internals
 static UBYTE * ui_text_ptr;
