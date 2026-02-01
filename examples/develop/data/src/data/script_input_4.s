@@ -253,5 +253,32 @@ GBVM$script_input_4$9a4e73eb_fb72_4725_a058_bf47cb369f5b$2017e4bb_16d3_47bc_a86c
 
         VM_POP                  ^/6 + 2/    ; 6 for local vars + 2 results of RPN calc\001\001\002\003DE\nFG\001\003\004\001\377\002\001\001\001\002\003@A\nBC\001\003\004\001\377\002\001
 
+        ; VM_LOAD_TEXT_EX example
+        VM_RESERVE              4
+        VM_RTC_START            .RTC_START
+        VM_RTC_LATCH
+        VM_RTC_GET              .ARG3, .RTC_SECONDS
+        VM_RTC_GET              .ARG2, .RTC_MINUTES
+        VM_RTC_GET              .ARG1, .RTC_HOURS
+        VM_RTC_GET              .ARG0, .RTC_DAYS
+        VM_RPN
+            .R_INT16            clock_text
+            .R_INT8             ___bank_script_input_4
+            .R_STOP
+
+        VM_LOAD_TEXT_EX         6 ; render text and pop 6 parameters off the VM stack (4 + 2)
+
+        VM_OVERLAY_CLEAR        0, 0, 20, 9, .UI_COLOR_BLACK, 0
+        VM_OVERLAY_MOVE_TO      0, 9, .OVERLAY_TEXT_IN_SPEED
+        VM_DISPLAY_TEXT
+
+        VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW | .UI_WAIT_TEXT | .UI_WAIT_BTN_ANY)/
+
+        VM_OVERLAY_MOVE_TO      0, 18, .OVERLAY_TEXT_OUT_SPEED
+        VM_OVERLAY_WAIT         .UI_MODAL, ^/(.UI_WAIT_WINDOW)/
+
         ; Stop Script
         VM_STOP
+
+clock_text:
+        .asciz "\002\001DAY:%D8 TIME: %D2:%D2:%D2"

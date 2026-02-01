@@ -90,7 +90,7 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_load_text,                      BANK(VM_UI),            1}, // 0x40
     {vm_display_text,                   BANK(VM_UI),            2}, // 0x41
     {vm_overlay_setpos,                 BANK(VM_UI),            2}, // 0x42
-    {0, 0, 0},
+    {vm_load_text_ex,                   BANK(VM_UI),            1}, // 0x43
     {vm_overlay_wait,                   BANK(VM_UI),            2}, // 0x44
     {vm_overlay_move_to,                BANK(VM_UI),            3}, // 0x45
     {vm_overlay_show,                   BANK(VM_UI),            4}, // 0x46
@@ -194,7 +194,7 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_actor_move_to_x,                BANK(VM_ACTOR),         3}, // 0x90
     {vm_actor_move_to_y,                BANK(VM_ACTOR),         3}, // 0x91
     {vm_actor_move_to_xy,               BANK(VM_ACTOR),         3}, // 0x92
-    {vm_actor_move_to_set_dir_x,        BANK(VM_ACTOR),         2}, // 0x93    
+    {vm_actor_move_to_set_dir_x,        BANK(VM_ACTOR),         2}, // 0x93
     {vm_actor_move_to_set_dir_y,        BANK(VM_ACTOR),         2}, // 0x94
     {vm_actor_set_anim_moving,          BANK(VM_ACTOR),         2}  // 0x95
 };

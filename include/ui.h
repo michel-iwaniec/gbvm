@@ -50,7 +50,7 @@ extern UBYTE text_ff_joypad;
 extern UBYTE text_ff;
 extern UBYTE text_bkg_fill;
 
-extern unsigned char ui_text_data[TEXT_MAX_LENGTH];
+extern unsigned char ui_text_data[TEXT_MAX_LENGTH + 1];
 
 #define UI_PRINT_LEFTTORIGHT 0
 #define UI_PRINT_RIGHTTOLEFT 1

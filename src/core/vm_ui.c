@@ -45,43 +45,32 @@ inline UBYTE itoa_format(INT16 v, UBYTE * d, UBYTE dlen) {
     return len;
 }
 
-// renders UI text into buffer
-void vm_load_text(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE nargs) OLDCALL NONBANKED {
-    dummy0; dummy1; // suppress warnings
-
-    UBYTE _save = CURRENT_BANK;
-    SWITCH_ROM(THIS->bank);
-
-    const INT16 * args = (INT16 *)THIS->PC;
-    const unsigned char * s = THIS->PC + (nargs << 1);
+static const unsigned char * load_text(const unsigned char * s, INT16 * args) NONBANKED {
     unsigned char * d = ui_text_data;
-    INT16 idx;
-
     while (*s) {
         if (*s == '%') {
-            idx = *((INT16 *)VM_REF_TO_PTR(*args));
             switch (*++s) {
                 // variable value of fixed width, zero padded
                 case 'D':
-                    d += itoa_format(idx, d, *++s - '0');
+                    d += itoa_format(*args, d, *++s - '0');
                     break;
                 // variable value
                 case 'd':
-                    d += itoa_format(idx, d, 0);
+                    d += itoa_format(*args, d, 0);
                     break;
                 // char from variable
                 case 'c':
-                    *d++ = (unsigned char)idx;
+                    *d++ = (unsigned char)(*args);
                     break;
                 // text tempo from variable
                 case 't':
                     *d++ = 0x01u;
-                    *d++ = (unsigned char)idx + 0x02u;
+                    *d++ = (unsigned char)(*args) + 0x02u;
                     break;
                 // font index from variable
                 case 'f':
                     *d++ = 0x02u;
-                    *d++ = (unsigned char)idx + 0x01u;
+                    *d++ = (unsigned char)(*args) + 0x01u;
                     break;
                 // excape % symbol
                 case '%':
@@ -95,12 +84,32 @@ void vm_load_text(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE nar
             *d++ = *s++;
             continue;
         }
-        s++; args++;
+        s++; args--;
     }
     *d = 0;
+    return s + 1;
+}
 
-    SWITCH_ROM(_save);
-    THIS->PC = s + 1;
+// renders UI text into buffer
+void vm_load_text(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE nargs) OLDCALL NONBANKED {
+    dummy0; dummy1; // suppress warnings
+    SWITCH_ROM(THIS->bank);
+    const INT16 * sargs = THIS->PC;
+    INT16 * dargs = ui_text_data + (sizeof(ui_text_data) - sizeof(INT16));
+    while (nargs--) {
+        *dargs-- = *((INT16 *)VM_REF_TO_PTR(*sargs));
+        ++sargs;
+    }
+    THIS->PC = load_text((const unsigned char *)sargs, (INT16 *)(ui_text_data + (sizeof(ui_text_data) - sizeof(INT16))));
+}
+
+// renders UI text into buffer indirectly
+void vm_load_text_ex(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE n) OLDCALL NONBANKED {
+    dummy0; dummy1; // suppress warnings
+    INT16* arg0 = VM_REF_TO_PTR(FN_ARG0);
+    SWITCH_ROM(*(UBYTE *)(arg0));
+    load_text(*(const unsigned char **)(arg0 - 1), (INT16 *)(arg0 - 2));
+    if (n) THIS->stack_ptr -= n;
 }
 
 // start displaying text
