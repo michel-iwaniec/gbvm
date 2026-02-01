@@ -8,6 +8,7 @@
 
 #include "vm.h"
 #include "math.h"
+#include "compat.h"
 
 BANKREF(VM_MAIN)
 
@@ -98,20 +99,17 @@ void vm_switch(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idx, U
     if (idx < 0) value = *(THIS->stack_ptr + idx); else value = *(script_memory + idx);
     if (n) THIS->stack_ptr -= n;        // dispose values on VM stack if required
 
-    UBYTE _save = CURRENT_BANK;         // we must preserve current bank,
-    SWITCH_ROM(THIS->bank);             // then switch to bytecode bank
+    SWITCH_ROM(THIS->bank);             // switch to bytecode bank
 
     table = (INT16 *)(THIS->PC);
     while (size) {
         if (value == *table++) {
             THIS->PC = (UBYTE *)(*table);   // condition met, perform jump
-            SWITCH_ROM(_save);              // restore bank
             return;
         } else table++;
         size--;
     }
 
-    SWITCH_ROM(_save);                  // restore bank
     THIS->PC = (UBYTE *)table;          // make PC point to the next instruction instruction
 }
 
@@ -150,15 +148,13 @@ void vm_beginthread(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE b
     // initialize thread locals if any
     if (!(nargs)) return;
     if (ctx) {
-        UBYTE _save = CURRENT_BANK;         // we must preserve current bank,
-        SWITCH_ROM(THIS->bank);             // then switch to bytecode bank
+        SWITCH_ROM(THIS->bank);             // switch to bytecode bank
         for (UBYTE i = nargs; i != 0; i--) {
             INT16 A = *((INT16 *)THIS->PC);
             A = (A < 0) ? *(THIS->stack_ptr + A) : *(script_memory + A);
             *(ctx->stack_ptr++) = (UWORD)A;
             THIS->PC += 2;
         }
-        SWITCH_ROM(_save);
     }
 }
 //
@@ -260,8 +256,7 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
     INT16 * A, * B, * ARGS;
     INT16 idx;
 
-    UBYTE _save = CURRENT_BANK;         // we must preserve current bank,
-    SWITCH_ROM(THIS->bank);             // then switch to bytecode bank
+    SWITCH_ROM(THIS->bank);             // switch to bytecode bank
 
     ARGS = THIS->stack_ptr;             // fix position of the stack to simplify parameter addressing
     while (TRUE) {
@@ -326,7 +321,6 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
                     *(THIS->stack_ptr) = op;
                     break;
                 default:
-                    SWITCH_ROM(_save);             // restore bank
                     return;
             }
             THIS->stack_ptr++;
@@ -367,7 +361,6 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
                 case VM_OP_RND   : *B = randw() % (UWORD)*B; continue;
                 // terminator
                 default:
-                    SWITCH_ROM(_save);             // restore bank
                     return;
             }
             THIS->stack_ptr--;
@@ -395,10 +388,8 @@ void vm_get_far(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idxA,
     dummy0; dummy1;
     UINT16 * A;
     if (idxA < 0) A = THIS->stack_ptr + idxA; else A = script_memory + idxA;
-    UBYTE _save = CURRENT_BANK;   // we must preserve current bank,
-    SWITCH_ROM(bank);             // then switch to bytecode bank
+    SWITCH_ROM(bank);             // switch to bytecode bank
     *A = (size == 0) ? *((UBYTE *)addr) : *((UINT16 *)addr);
-    SWITCH_ROM(_save);
 }
 
 // initializes random number generator
@@ -545,9 +536,6 @@ __asm
         ld h, a                 ; hl offset of the script
         inc de
 
-        ldh a, (__current_bank)
-        push af
-
         ld a, (de)              ; bank of the script
         ldh (__current_bank), a
         ld (_rROMB0), a         ; switch bank with vm code
@@ -633,16 +621,9 @@ __asm
         pop hl
         ld sp, hl
 
-        pop af
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; restore bank
-
         ld a, #1                ; instruction executed
         ret
 3$:
-        pop af
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; restore bank
 
         xor a                   ; VM_STOP encountered
         ret
@@ -754,6 +735,9 @@ UBYTE script_detach_hthread(UBYTE ID) BANKED {
 UBYTE script_runner_update(void) NONBANKED {
     static UBYTE waitable;
     static UBYTE counter;
+    static FASTUBYTE _save;
+
+    _save = CURRENT_BANK;
 
     // if locked then execute last context until it is unlocked or terminated
     if (!vm_lock_state) old_executing_ctx = 0, executing_ctx = first_ctx;
@@ -777,7 +761,11 @@ UBYTE script_runner_update(void) NONBANKED {
             if (old_executing_ctx) executing_ctx = old_executing_ctx->next; else executing_ctx = first_ctx;
         } else {
             // check exception
-            if (vm_exception_code) return RUNNER_EXCEPTION;
+            if (vm_exception_code)
+            {
+                SWITCH_ROM(_save);
+                return RUNNER_EXCEPTION;
+            }
             // loop until waitable state or quant is expired
             if (!(executing_ctx->waitable) && (counter--)) continue;
             // exit while loop if context switching is locked
@@ -788,6 +776,8 @@ UBYTE script_runner_update(void) NONBANKED {
             counter = INSTRUCTIONS_PER_QUANT;
         }
     }
+    SWITCH_ROM(_save);
+
     // return 0 if all threads are finished
     if (first_ctx == 0) return RUNNER_DONE;
     // return 1 if all threads in waitable state else return 2

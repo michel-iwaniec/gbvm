@@ -1057,7 +1057,7 @@ static void handle_horizontal_input(void)
         if (plat_vel_x != 0)
         {
             // Set deceleration value based on state
-            WORD dec = (plat_state == GROUND_STATE) ? plat_dec : plat_air_dec;
+            WORD dec = (plat_state == GROUND_STATE || plat_state == RUN_STATE) ? plat_dec : plat_air_dec;
 
             if (plat_vel_x < 0)
             {
