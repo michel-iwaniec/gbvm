@@ -270,7 +270,7 @@ OP_VM_RPN          = 0x15
 .REF_IND           = -4
 .REF_SET           = -5
 .REF_SET_IND       = -6
-.REF_MEM TYP       = -7
+.REF_MEM           = -7
 .REF_MEM_SET       = -8
 
 ;-- Reverse Polish Notation (RPN) calculator, returns result(s) on the VM stack.
