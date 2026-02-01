@@ -337,7 +337,7 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
                 case VM_OP_AND   : *A = ((bool)(*A) && (bool)(*B)); break;
                 case VM_OP_OR    : *A = ((bool)(*A) || (bool)(*B)); break;
                 case VM_OP_NOT   : *B = !(*B); continue;
-                // arithmetics   
+                // arithmetics
                 case VM_OP_ADD   : *A = *A + *B; break;
                 case VM_OP_SUB   : *A = *A - *B; break;
                 case VM_OP_MUL   : *A = *A * *B; break;
@@ -518,7 +518,7 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
 
 // executes one step in the passed context
 // return zero if script end
-// bank with VM code must be active
+// VM_STEP must not be called from outside, but not declared static, because the symbol address is required for the GBStudio debugger
 static FASTUBYTE current_fn_bank;
 static FASTUBYTE current_fn_nargs;
 static UINT16 current_sp;
@@ -542,7 +542,7 @@ __asm
 
         ld a, (hl+)             ; load current instruction and return if terminator
         or a
-        jr z, 3$
+        ret z                   ; exit if VM_STOP encountered
 
         ld (_current_sp), sp
 
@@ -622,10 +622,6 @@ __asm
         ld sp, hl
 
         ld a, #1                ; instruction executed
-        ret
-3$:
-
-        xor a                   ; VM_STOP encountered
         ret
 __endasm;
 #endif
@@ -761,8 +757,7 @@ UBYTE script_runner_update(void) NONBANKED {
             if (old_executing_ctx) executing_ctx = old_executing_ctx->next; else executing_ctx = first_ctx;
         } else {
             // check exception
-            if (vm_exception_code)
-            {
+            if (vm_exception_code) {
                 SWITCH_ROM(_save);
                 return RUNNER_EXCEPTION;
             }

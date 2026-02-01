@@ -170,10 +170,6 @@ void vm_asm(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
 void vm_memset(SCRIPT_CTX * THIS, INT16 idx, INT16 value, INT16 count) OLDCALL BANKED;
 void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL BANKED;
 
-// return zero if script end
-// bank with VM code must be active
-UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR;
-
 // return TRUE if VM is in locked state
 inline UBYTE VM_ISLOCKED(void) {
     return (vm_lock_state != 0);
