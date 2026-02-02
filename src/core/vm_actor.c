@@ -26,6 +26,7 @@ BANKREF(VM_ACTOR)
 #define MOVE_H                     (MOVE_ALLOW_H | MOVE_NEEDED_H)
 #define MOVE_V                     (MOVE_ALLOW_V | MOVE_NEEDED_V)
 #define TILE_FRACTION_MASK         0b11111111
+#define TILE_HALF_MASK             0b10000000
 #define ONE_TILE_DISTANCE          256
 
 
@@ -215,19 +216,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
     // Interrupt actor movement
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
-        // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
-        } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
-        }
-        // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
-        } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
-        }
-        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+        return;
     }
 
     UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS);
@@ -321,10 +310,59 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 }
 
 void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+
+    // indicate waitable state of context
+    THIS->waitable = 1;
+
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
 
+    // Set interrupt to stop all subsequent scripted movement until next move init
     SET_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+
+    // Determine tile snapped destination
+    UWORD dest_x = SUBPX_SNAP_TILE(actor->pos.x);
+    UWORD dest_y = SUBPX_SNAP_TILE(actor->pos.y);
+
+    // If position is over half tile, move to next tile
+    if (actor->pos.x & TILE_HALF_MASK) {
+        dest_x += ONE_TILE_DISTANCE;
+    }
+    if (actor->pos.y & TILE_HALF_MASK) {
+        dest_y += ONE_TILE_DISTANCE;
+    }
+
+    // Move to tile aligned position
+    if (actor->pos.x > dest_x) {
+        actor->pos.x -= actor->move_speed;
+        if (actor->pos.x < dest_x) {
+            actor->pos.x = dest_x;
+        }
+    } else if (actor->pos.x < dest_x) {
+        actor->pos.x += actor->move_speed;
+        if (actor->pos.x > dest_x) {
+            actor->pos.x = dest_x;
+        }
+    }
+    if (actor->pos.y > dest_y) {
+        actor->pos.y -= actor->move_speed;
+        if (actor->pos.y < dest_y) {
+            actor->pos.y = dest_y;
+        }
+    } else if (actor->pos.y < dest_y) {
+        actor->pos.y += actor->move_speed;
+        if (actor->pos.y > dest_y) {
+            actor->pos.y = dest_y;
+        }
+    }
+
+    // If reached tile aligned position, return
+    if (actor->pos.x == dest_x && actor->pos.y == dest_y) {
+        return;
+    }
+
+    THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+    return;
 }
 
 void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
@@ -547,8 +585,6 @@ void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BAN
 
     CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
 
-    // Switch to moving animation frames
-
     // Snap to nearest pixel before moving
     actor->pos.x = SUBPX_SNAP_PX(actor->pos.x);
     actor->pos.y = SUBPX_SNAP_PX(actor->pos.y);
@@ -603,19 +639,7 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
 
     // Interrupt actor movement
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
-        // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
-        } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
-        }
-        // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
-        } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
-        }
-        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+        return;
     }
 
     UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
@@ -678,22 +702,11 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
+    
 
     // Interrupt actor movement
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
-        // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
-        } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
-        }
-        // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
-        } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
-        }
-        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+        return;
     }
 
     UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
@@ -757,19 +770,7 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
 
     // Interrupt actor movement
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
-        // Set new X destination to next tile
-        if ((actor->pos.x < params->X) && (actor->pos.x & TILE_FRACTION_MASK)) {   // Bitmask to check for non-grid-aligned position
-            params->X = (actor->pos.x & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;  // If moving in positive direction, round up to next tile
-        } else {
-            params->X = actor->pos.x  & ~TILE_FRACTION_MASK;                       // Otherwise, round down
-        }
-        // Set new Y destination to next tile
-        if ((actor->pos.y < params->Y) && (actor->pos.y & TILE_FRACTION_MASK)) {
-            params->Y = (actor->pos.y & ~TILE_FRACTION_MASK) + ONE_TILE_DISTANCE;
-        } else {
-            params->Y = actor->pos.y  & ~TILE_FRACTION_MASK;
-        }
-        CLR_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT);
+        return;
     }
 
     UBYTE test_actors = CHK_FLAG(attr, ACTOR_ATTR_CHECK_COLL_ACTORS);
@@ -871,6 +872,11 @@ void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     act_move_to_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
     
+    // Interrupt actor movement
+    if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
+        return;
+    }
+
     if (params->X != actor->pos.x) {
         actor_set_dir(actor, params->X < actor->pos.x ? DIR_LEFT : DIR_RIGHT, TRUE);
     }
@@ -882,6 +888,11 @@ void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     act_move_to_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
     
+    // Interrupt actor movement
+    if (CHK_FLAG(actor->flags, ACTOR_FLAG_INTERRUPT)) {
+        return;
+    }
+
     if (params->Y != actor->pos.y) {
         actor_set_dir(actor, params->Y < actor->pos.y ? DIR_UP : DIR_DOWN, TRUE);
     }
