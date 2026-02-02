@@ -63,7 +63,7 @@ inline actor_t *actor_overlapping_player(void) {
 }
 actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore) BANKED;
 actor_t *actor_overlapping_bb_inc_noclip(rect16_t *bb, upoint16_t *offset, actor_t *ignore) BANKED;
-void actor_set_anim_idle(actor_t *actor) BANKED;
+void actor_set_anim_idle(actor_t *actor) NONBANKED;
 void actor_set_anim_moving(actor_t *actor) BANKED;
 void actor_set_dir(actor_t *actor, direction_e dir, UBYTE moving) BANKED;
 inline void actor_set_anim(actor_t *actor, UBYTE anim) {
