@@ -461,10 +461,6 @@ actor_t *actor_with_script_in_front_of_player(UBYTE grid_size) BANKED {
     return NULL;
 }
 
-actor_t *actor_overlapping_player(void) BANKED {
-    return actor_overlapping_player_from(NULL);
-}
-
 actor_t *actor_overlapping_player_from(actor_t *start_actor) BANKED {
     actor_t *actor = start_actor ? start_actor->prev : PLAYER.prev;
 
