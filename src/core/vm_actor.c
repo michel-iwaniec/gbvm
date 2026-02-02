@@ -629,7 +629,7 @@ void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BAN
 }
 
 void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
-    actor_t *actor;
+    static actor_t *actor;
 
     // indicate waitable state of context
     THIS->waitable = 1;
@@ -695,7 +695,7 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
 }
 
 void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
-    actor_t *actor;
+    static actor_t *actor;
 
     // indicate waitable state of context
     THIS->waitable = 1;
@@ -760,7 +760,7 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
 }
 
 void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
-    actor_t *actor;
+    static actor_t *actor;
 
     // indicate waitable state of context
     THIS->waitable = 1;
