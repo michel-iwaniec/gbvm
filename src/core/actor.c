@@ -391,7 +391,7 @@ UBYTE actor_get_frame_offset(actor_t *actor) BANKED {
     return actor->frame - actor->frame_start;
 }
 
-void actor_set_anim_idle(actor_t *actor) BANKED {
+void actor_set_anim_idle(actor_t *actor) NONBANKED {
     actor_set_anim(actor, actor->dir);
 }
 
