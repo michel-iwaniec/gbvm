@@ -253,8 +253,10 @@ GBVM$script_input_4$9a4e73eb_fb72_4725_a058_bf47cb369f5b$2017e4bb_16d3_47bc_a86c
 
         VM_POP                  ^/6 + 2/    ; 6 for local vars + 2 results of RPN calc\001\001\002\003DE\nFG\001\003\004\001\377\002\001\001\001\002\003@A\nBC\001\003\004\001\377\002\001
 
-        ; VM_LOAD_TEXT_EX example
-        VM_RESERVE              4
+        ; VM_LOAD_TEXT_EX with localization example
+        VM_PUSH_CONST           id_russian              ; language variable, should be global
+
+        VM_RESERVE              5
         VM_RTC_START            .RTC_START
         VM_RTC_LATCH
         VM_RTC_GET              .ARG3, .RTC_SECONDS
@@ -262,11 +264,19 @@ GBVM$script_input_4$9a4e73eb_fb72_4725_a058_bf47cb369f5b$2017e4bb_16d3_47bc_a86c
         VM_RTC_GET              .ARG1, .RTC_HOURS
         VM_RTC_GET              .ARG0, .RTC_DAYS
         VM_RPN
-            .R_INT16            clock_text
+            .R_REF              .ARG5                   ; push language value
+            .R_INT16            script_input_4_l10n
+            .R_OPERATOR         .ADD
+            .R_REF_SET          .ARG4                   ; save temporary result (must be on VM stack because scripts run in parallel)
+            .R_REF_MEM_IND      .MEM_I16, .ARG4         ; push script_input_4_l10n[id_russian] on stack
+            .R_INT16            id_clock_text
+            .R_OPERATOR         .ADD
+            .R_REF_SET          .ARG4                   ; save temporary result
+            .R_REF_MEM_IND      .MEM_I16, .ARG4         ; push script_input_4_l10n[id_russian][id_clock_text]
             .R_INT8             ___bank_script_input_4
             .R_STOP
 
-        VM_LOAD_TEXT_EX         6 ; render text and pop 6 parameters off the VM stack (4 + 2)
+        VM_LOAD_TEXT_EX         7 ; render text and pop 7 parameters off the VM stack (1 + 4 + 2)
 
         VM_OVERLAY_CLEAR        0, 0, 20, 9, .UI_COLOR_BLACK, 0
         VM_OVERLAY_MOVE_TO      0, 9, .OVERLAY_TEXT_IN_SPEED
@@ -280,5 +290,37 @@ GBVM$script_input_4$9a4e73eb_fb72_4725_a058_bf47cb369f5b$2017e4bb_16d3_47bc_a86c
         ; Stop Script
         VM_STOP
 
-clock_text:
+; language ID definitions, should be in game_globals.i
+id_english       = (0 << 1)
+id_russian       = (1 << 1)
+
+; string IDs, local to this script
+id_whatever_text = (0 << 1)
+id_clock_text    = (1 << 1)
+id_other_text    = (2 << 1)
+
+; array of pointers for the each language table
+script_input_4_l10n:
+        .dw english_l10n, russian_l10n
+
+; arrays of pointers to strings for the each language
+english_l10n:
+        .dw whatever0_en, clock_text_en, whatever1_en
+russian_l10n:
+        .dw whatever0_ru, clock_text_ru, whatever1_ru
+
+; english strings for this script
+whatever0_en:
+        .asciz "some english text"
+clock_text_en:
         .asciz "\002\001DAY:%D8 TIME: %D2:%D2:%D2"
+whatever1_en:
+        .asciz "some other english text"
+
+; russian strings for this script
+whatever0_ru:
+        .asciz "some russian"
+clock_text_ru:
+        .asciz "\002\001DEN':%D8 VREM'YA: %D2:%D2:%D2"
+whatever1_ru:
+        .asciz "a bit more of russian text"
