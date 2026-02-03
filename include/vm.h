@@ -121,6 +121,7 @@ typedef struct SCRIPT_CTX {
 #define VM_OP_REF_SET_IND   -6
 #define VM_OP_REF_MEM       -7
 #define VM_OP_REF_MEM_SET   -8
+#define VM_OP_REF_MEM_IND   -9
 
 #define VM_OP_MEM_I8        'i'
 #define VM_OP_MEM_U8        'u'
