@@ -28,14 +28,9 @@ int8_t COS(uint8_t a) BANKED {
     return sine_wave[(uint8_t)((uint8_t)(a) + 64u)];
 }
 
-UBYTE isqrt(uint16_t x)
 #if defined(__SDCC) && defined(NINTENDO)
-	NAKED
-#endif
-	BANKED
-{
+UBYTE isqrt(uint16_t x) NAKED BANKED {
        x;
-#if defined(__SDCC) && defined(NINTENDO)
 __asm
 	ldhl sp, #7
 	ld a, (hl-)
@@ -82,8 +77,10 @@ __asm
 	cpl
 	ret
 __endasm;
+}
 #else
-	uint16_t m, y, b;
+UBYTE isqrt(uint16_t x) BANKED {
+    uint16_t m, y, b;
     m = 0x4000;
     y = 0;
     while (m != 0) {
@@ -96,5 +93,5 @@ __endasm;
         m >>= 2;
     }
     return (UBYTE)y;
-#endif
 }
+#endif
