@@ -22,15 +22,15 @@ GBVM$trigger_18_interact$7baed7cf_0ac6_4128_b3fe_5c2ca461fde2$f8f027ef_b818_4038
                 VM_RPN
                     .R_INT16    -360
                     .R_REF      .ARG1
-                    .R_OPERATOR '*'
+                    .R_OPERATOR .MUL
                     .R_INT16    220
                     .R_REF      .ARG0
-                    .R_OPERATOR '*'
+                    .R_OPERATOR .MUL
+                    .R_REF_MEM_SET  .MEM_I16, _plat_vel_x
+                    .R_REF_MEM_SET  .MEM_I16, _plat_vel_y
                     .R_STOP
-                VM_SET_INT16            _plat_vel_y, .ARG1
-                VM_SET_INT16            _plat_vel_x, .ARG0
         
-                VM_POP                  5
+                VM_POP                  3
 
         ; Stop Script
         VM_STOP

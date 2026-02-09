@@ -2,9 +2,8 @@
 
 #include "vm_math.h"
 
+#include "sincos.h"
 #include "vm.h"
-
-#include "math.h"
 
 BANKREF(VM_MATH)
 
