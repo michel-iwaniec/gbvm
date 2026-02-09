@@ -391,7 +391,7 @@ UBYTE actor_get_frame_offset(actor_t *actor) BANKED {
     return actor->frame - actor->frame_start;
 }
 
-void actor_set_anim_idle(actor_t *actor) BANKED {
+void actor_set_anim_idle(actor_t *actor) NONBANKED {
     actor_set_anim(actor, actor->dir);
 }
 
@@ -459,10 +459,6 @@ actor_t *actor_with_script_in_front_of_player(UBYTE grid_size) BANKED {
     }
 
     return NULL;
-}
-
-actor_t *actor_overlapping_player(void) BANKED {
-    return actor_overlapping_player_from(NULL);
 }
 
 actor_t *actor_overlapping_player_from(actor_t *start_actor) BANKED {
