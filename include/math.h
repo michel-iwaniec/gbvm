@@ -133,9 +133,6 @@ typedef enum {
     DIR_NONE
 } direction_e;
 
-int8_t SIN(uint8_t a) BANKED;
-int8_t COS(uint8_t a) BANKED;
-
 inline void point_translate_dir(upoint16_t *point, direction_e dir, uint8_t speed) {
     if(dir == DIR_RIGHT)
         point->x += speed;
@@ -156,16 +153,6 @@ inline void point_translate_dir_word(upoint16_t *point, direction_e dir, uint16_
         point->y += speed;
     else if(dir == DIR_UP)
         point->y -= speed;
-}
-
-inline void upoint_translate_angle(upoint16_t *point, uint8_t angle, uint8_t speed) {
-    point->x += ((SIN(angle) * (speed)) >> 7);
-    point->y -= ((COS(angle) * (speed)) >> 7);
-}
-
-inline void point_translate_angle_to_delta(point16_t *point, uint8_t angle, uint8_t speed) {
-    point->x = ((SIN(angle) * (speed)) >> 7);
-    point->y = -((COS(angle) * (speed)) >> 7);
 }
 
 // Saturating addition of a signed 16-bit delta onto an unsigned 16-bit base.

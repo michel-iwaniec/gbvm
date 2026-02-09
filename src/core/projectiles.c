@@ -6,6 +6,7 @@
 
 #include <string.h>
 
+#include "sincos.h"
 #include "scroll.h"
 #include "actor.h"
 #include "linked_list.h"
