@@ -141,9 +141,9 @@ void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
     if (height == 0) return;
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = 1;
+        VBK_REG = VBK_ATTRIBUTES;
         fill_win_rect(x, y, width, height, overlay_priority | (text_palette & 0x07u));
-        VBK_REG = 0;
+        VBK_REG = VBK_TILES;
     }
 #endif
     UBYTE * base_addr = GetWinAddr() + (y << 5) + x;
@@ -160,20 +160,20 @@ void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
 
 inline void ui_load_tile(const UBYTE * tiledata, UBYTE bank) {
 #ifdef CGB
-    VBK_REG = ui_current_tile_bank;
+    VBK_REG = (ui_current_tile_bank != 0) ? VBK_BANK_1 : VBK_BANK_0;
 #endif
     SetBankedBkgData(ui_current_tile, 1, tiledata, bank);
 #ifdef CGB
-    VBK_REG = 0;
+    VBK_REG = VBK_BANK_0;
 #endif
 }
 inline void ui_load_wram_tile(const UBYTE * tiledata) {
 #ifdef CGB
-    VBK_REG = ui_current_tile_bank;
+    VBK_REG = (ui_current_tile_bank != 0) ? VBK_BANK_1 : VBK_BANK_0;
 #endif
     set_bkg_data(ui_current_tile, 1, tiledata);
 #ifdef CGB
-    VBK_REG = 0;
+    VBK_REG = VBK_BANK_0;
 #endif
 }
 
@@ -265,9 +265,9 @@ UBYTE ui_print_render(const unsigned char ch) {
 inline void ui_set_tile(UBYTE * addr, UBYTE tile, UBYTE bank) {
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = 1;
+        VBK_REG = VBK_ATTRIBUTES;
         set_vram_byte(addr, overlay_priority | ((bank) ? ((text_palette & 0x07u) | 0x08u) : (text_palette & 0x07u)));
-        VBK_REG = 0;
+        VBK_REG = VBK_TILES;
     }
 #else
     bank;
@@ -397,9 +397,9 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                     scroll_rect(text_scroll_addr, text_scroll_width, text_scroll_height, text_scroll_fill);
 #ifdef CGB
                     if (_is_CGB) {
-                        VBK_REG = 1;
+                        VBK_REG = VBK_ATTRIBUTES;
                         scroll_rect(text_scroll_addr, text_scroll_width, text_scroll_height, overlay_priority | (text_palette & 0x07u));
-                        VBK_REG = 0;
+                        VBK_REG = VBK_TILES;
                     }
 #endif
                     ui_dest_ptr = ui_dest_base;
@@ -473,9 +473,10 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
     // draw menu cursor
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = 1;
+        // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
+        VBK_REG = VBK_ATTRIBUTES;
         set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-        VBK_REG = 0;
+        VBK_REG = VBK_TILES;
     }
 #endif
     set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_cursor_tile);
@@ -519,9 +520,10 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         // erase old cursor
 #ifdef CGB
         if (_is_CGB) {
-            VBK_REG = 1;
+            // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
+            VBK_REG = VBK_ATTRIBUTES;
             set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-            VBK_REG = 0;
+            VBK_REG = VBK_TILES;
         }
 #endif
         set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_bg_tile);
@@ -530,9 +532,10 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         // put new cursor
 #ifdef CGB
         if (_is_CGB) {
-            VBK_REG = 1;
+            // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
+            VBK_REG = VBK_ATTRIBUTES;
             set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-            VBK_REG = 0;
+            VBK_REG = VBK_TILES;
         }
 #endif
         set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_cursor_tile);
