@@ -1,5 +1,5 @@
 {
-  "description": "actor-move-to",
+  "description": "projectiles-disappear",
   "rules": [
     [
       "ASSERT_NE(DATA('WRAM', ADDR('_projectiles_active_head', 'WRAM'), 2), array(\"B\", [0x00, 0x00]))",
