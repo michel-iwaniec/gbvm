@@ -57,3 +57,11 @@ jobs:
       - name: Run Tests
         run: |
           make GBDK="/gbdk" GBSPACK="/gbspack/gbspack" EMU="DISPLAY=:0.0 wine /bgb/bgb.exe" test
+
+      - name: Upload test output artifact on build fail
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: gbvm-test-output-${{ github.ref_name }}-${{ github.run_number }}
+          path: ./test
+          if-no-files-found: warn
