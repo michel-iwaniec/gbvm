@@ -1,0 +1,6 @@
+{
+  "description": "wall-jump-coyote-bug",
+  "rules": [
+    "CHECKSCREEN('expected.png')"
+  ]
+}

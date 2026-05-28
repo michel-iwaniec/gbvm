@@ -1,0 +1,6 @@
+{
+  "description": "wall-jump-prevented-bug",
+  "rules": [
+    "CHECKSCREEN('expected.png')"
+  ]
+}

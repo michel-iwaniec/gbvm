@@ -1,0 +1,6 @@
+{
+  "description": "jump-distance-bug",
+  "rules": [
+    "CHECKSCREEN('expected.png')"
+  ]
+}
