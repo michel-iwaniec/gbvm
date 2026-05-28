@@ -2022,6 +2022,12 @@ static void state_update_jump(void) {
     // Counting down No Control frames
     // Set in Wall and Fall states, checked in Fall and Jump states
     COUNTER_DECREMENT(plat_nocontrol_h_timer);
+
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    // Counting down Wall Coyote Time
+    //  Set in collisions and checked in fall/jump states
+    COUNTER_DECREMENT_IF(plat_wall_coyote_timer, plat_wall_col == WALL_COL_NONE);
+#endif
 }
 #endif
 
