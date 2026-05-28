@@ -1,0 +1,6 @@
+{
+  "description": "wall-jump-infinite-bug",
+  "rules": [
+    "CHECKSCREEN('expected.png')"
+  ]
+}

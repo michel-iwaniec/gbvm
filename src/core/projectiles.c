@@ -60,8 +60,8 @@ void projectiles_update(void) NONBANKED {
     projectile = projectiles_active_head;
     prev_projectile = NULL;
 
-    UBYTE draw_scroll_tx = PX_TO_TILE(draw_scroll_x);
-    UBYTE draw_scroll_ty = PX_TO_TILE(draw_scroll_y);
+    UBYTE draw_scroll_tx = PX_TO_TILE(MAX(0, draw_scroll_x));
+    UBYTE draw_scroll_ty = PX_TO_TILE(MAX(0, draw_scroll_y));
     UBYTE clip_x_left = draw_scroll_tx - CLIP_EXT;
     min_x = (clip_x_left < draw_scroll_tx) ? clip_x_left : 0U;
     UBYTE clip_x_right = draw_scroll_tx + DEVICE_SCREEN_WIDTH + CLIP_EXT;
@@ -136,7 +136,7 @@ void projectiles_update(void) NONBANKED {
             }
 #if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
         }
-#endif        
+#endif
 
         prev_projectile = projectile;
         projectile = projectile->next;
@@ -212,7 +212,7 @@ void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
         } else if (angle == ANGLE_DOWN) {
             projectile->pos.y += initial_offset;
             projectile->delta_pos.x = 0;
-            projectile->delta_pos.y = move_speed;            
+            projectile->delta_pos.y = move_speed;
         } else {
             INT8 sinv = SIN(angle), cosv = COS(angle);
 
