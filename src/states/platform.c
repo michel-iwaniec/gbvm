@@ -543,6 +543,9 @@ void platform_init(void) BANKED
     plat_vel_y = 4000;              // Magic number for preventing a small glitch when loading
                                     // into a scene
     plat_last_wall_col = WALL_COL_NONE; // This could be 1 bit
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    plat_wall_coyote_timer = 0;
+#endif
     plat_hold_jump_timer = plat_jump_hold_frames;
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
     plat_extra_jumps_counter = plat_extra_jumps;
@@ -1175,7 +1178,10 @@ static void move_and_collide(UBYTE mask)
             plat_wall_col = wall;
             plat_last_wall_col = wall;
 #ifdef FEAT_PLATFORM_WALL_JUMP
-            plat_coyote_timer = plat_coyote_frames + 1;
+            if (!plat_grounded)
+            {
+                plat_wall_coyote_timer = plat_coyote_frames + 1;
+            }
 #endif
         }
 
@@ -1418,6 +1424,12 @@ finally_check_actor_col:
 
                         plat_wall_col = moving_right ? WALL_COL_RIGHT : WALL_COL_LEFT;
                         plat_last_wall_col = plat_wall_col;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+                        if (!plat_grounded)
+                        {
+                            plat_wall_coyote_timer = plat_coyote_frames + 1;
+                        }
+#endif
                         plat_coyote_timer = plat_coyote_frames + 1;
 
                         plat_vel_x = 0;
@@ -1528,7 +1540,7 @@ static void state_update_fall(void) {
     {
 #ifdef FEAT_PLATFORM_WALL_JUMP
         // Wall Jump
-        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
+        if (plat_wall_coyote_timer != 0 && plat_wall_jump_counter != 0)
         {
             plat_jump_type = JUMP_TYPE_WALL;
             plat_wall_jump_counter--;
@@ -1668,7 +1680,7 @@ static void state_update_fall(void) {
 #ifdef FEAT_PLATFORM_WALL_JUMP
     // Counting down Wall Coyote Time
     //  Set in collisions and checked in fall state
-    COUNTER_DECREMENT_IF(plat_coyote_timer, plat_wall_col == WALL_COL_NONE);
+    COUNTER_DECREMENT_IF(plat_wall_coyote_timer, plat_wall_col == WALL_COL_NONE);
 #endif
 }
 
@@ -1679,6 +1691,7 @@ static void state_enter_ground(void) {
     plat_jump_type = JUMP_TYPE_NONE;
 #ifdef FEAT_PLATFORM_WALL_JUMP
     plat_coyote_timer = 0;
+    plat_wall_coyote_timer = 0;
     plat_wall_jump_counter = plat_wall_jump_max;
 #endif
 #ifdef FEAT_PLATFORM_COYOTE_TIME
@@ -1853,6 +1866,7 @@ static void state_enter_jump(void) {
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
     plat_coyote_timer = 0;
+    plat_wall_coyote_timer = 0;
 #endif
     plat_jump_vel_per_frame = plat_jump_hold_vel;
     // Calculate jump boost value based on horizontal velocity
@@ -1971,7 +1985,7 @@ static void state_update_jump(void) {
     {
 #ifdef FEAT_PLATFORM_WALL_JUMP
         // Wall Jump
-        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
+        if (plat_wall_coyote_timer != 0 && plat_wall_jump_counter != 0)
         {
             plat_jump_type = JUMP_TYPE_WALL;
             plat_wall_jump_counter--;
