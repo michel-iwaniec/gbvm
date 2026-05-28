@@ -37,13 +37,13 @@ jobs:
 
       - name: Fetch dependencies
         run: |
+          curl -L https://github.com/gbdk-2020/gbdk-2020/releases/download/gbdk-next/gbdk-linux64.tar.gz > gbdk-linux64.tar.gz
+          sudo mkdir /gbdk
+          sudo tar -xvzf gbdk-linux64.tar.gz -C /gbdk --strip-components=1
           curl -L https://github.com/gb-studio-dev/gbvm-test-deps/archive/refs/tags/v0.0.2.zip > deps.zip
           unzip deps.zip -d deps
           cd deps/gbvm-test-deps*/files
-          sudo mkdir /gbdk
-          sudo tar -xvzf gbdk-linux64.tar.gz -C /gbdk --strip-components=1
           sudo unzip bgb.zip -d /bgb
-          sudo unzip gbspack*.zip -d /gbspack
 
       - name: Install / Run X Virtual Frame Buffer
         run: |
@@ -56,7 +56,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          make GBDK="/gbdk" GBSPACK="/gbspack/gbspack" EMU="DISPLAY=:0.0 wine /bgb/bgb.exe" test
+          make GBDK="/gbdk" EMU="DISPLAY=:0.0 wine /bgb/bgb.exe" test
 
       - name: Upload test output artifact on build fail
         if: ${{ failure() }}
