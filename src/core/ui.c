@@ -485,10 +485,7 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
     // draw menu cursor
 #ifdef CGB
     if (_is_CGB) {
-        // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
-        VBK_REG = VBK_ATTRIBUTES;
-        set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-        VBK_REG = VBK_TILES;
+        set_win_attribute_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
     }
 #endif
     set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_cursor_tile);
@@ -532,10 +529,7 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         // erase old cursor
 #ifdef CGB
         if (_is_CGB) {
-            // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
-            VBK_REG = VBK_ATTRIBUTES;
-            set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-            VBK_REG = VBK_TILES;
+            set_win_attribute_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
         }
 #endif
         set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_bg_tile);
@@ -544,10 +538,7 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         // put new cursor
 #ifdef CGB
         if (_is_CGB) {
-            // TODO: VBK_REG + set_win_tile_xy can be replaced with set_win_attribute_xy after gbdk-2020 commit fd44443
-            VBK_REG = VBK_ATTRIBUTES;
-            set_win_tile_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
-            VBK_REG = VBK_TILES;
+            set_win_attribute_xy(current_menu_item.X, current_menu_item.Y, overlay_priority | (text_palette & 0x07u));
         }
 #endif
         set_win_tile_xy(current_menu_item.X, current_menu_item.Y, ui_cursor_tile);
