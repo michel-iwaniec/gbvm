@@ -204,9 +204,7 @@ void vm_overlay_clear(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBY
     } else {
 #ifdef CGB
         if (_is_CGB) {
-            VBK_REG = VBK_ATTRIBUTES;
-            fill_win_rect(x, y, w, h, overlay_priority | (text_palette & 0x07u));
-            VBK_REG = VBK_TILES;
+            fill_win_rect_attributes(x, y, w, h, overlay_priority | (text_palette & 0x07u));
         }
 #endif
         fill_win_rect(x, y, w, h, ((color) ? ui_white_tile : ui_black_tile));
