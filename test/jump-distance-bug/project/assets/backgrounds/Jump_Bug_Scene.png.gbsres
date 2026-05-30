@@ -1,0 +1,12 @@
+{
+  "_resourceType": "background",
+  "id": "40f68de4-be25-4f9f-a55f-76d2478c96c1",
+  "name": "Jump_Bug_Scene",
+  "symbol": "bg_jump_bug_scene",
+  "tileColors": "",
+  "filename": "Jump_Bug_Scene.png",
+  "width": 20,
+  "height": 18,
+  "imageWidth": 160,
+  "imageHeight": 144
+}
