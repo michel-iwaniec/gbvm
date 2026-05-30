@@ -9,6 +9,7 @@ on:
       - beta-*
       - wip-*
       - toxa
+      - multi-platform
 
   workflow_dispatch:
 
