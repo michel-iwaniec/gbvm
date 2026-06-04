@@ -72,6 +72,23 @@ void SetBankedSpriteData(UBYTE i, UBYTE l, const unsigned char *ptr, UBYTE bank)
 void SetBankedBkgTiles(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *tiles, UBYTE bank) OLDCALL;
 
 /**
+ * Sets a rectangular region of Attribute Map entries for the Background layer (non-reentrant!)
+ *
+ * @param x          X Start position in Background Map tile coordinates. Range 0 - 31
+ * @param y          Y Start position in Background Map tile coordinates. Range 0 - 31
+ * @param w          Width of area to set in tiles. Range 0 - 31
+ * @param h          Height of area to set in tiles.   Range 0 - 31
+ * @param attributes Pointer to source Attribute Map data
+ * @param bank       bank to read from
+ */
+inline void SetBankedBkgAttributes(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *attributes, UBYTE bank)
+{
+    VBK_REG = VBK_ATTRIBUTES;
+    SetBankedBkgTiles(x, y, w, h, attributes, bank);
+    VBK_REG = VBK_TILES;
+}
+
+/**
  * Sets a rectangular region of Tile Map entries for the Window layer (non-reentrant!)
  *
  * @param x      X Start position in Window Map tile coordinates. Range 0 - 31
@@ -83,6 +100,22 @@ void SetBankedBkgTiles(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *
  */
 void SetBankedWinTiles(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *tiles, UBYTE bank) OLDCALL;
 
+/**
+ * Sets a rectangular region of Attribute Map entries for the Window layer (non-reentrant!)
+ *
+ * @param x          X Start position in Window Map tile coordinates. Range 0 - 31
+ * @param y          Y Start position in Window Map tile coordinates. Range 0 - 31
+ * @param w          Width of area to set in tiles. Range 0 - 31
+ * @param h          Height of area to set in tiles.   Range 0 - 31
+ * @param attributes Pointer to source Attribute Map data
+ * @param bank       bank to read from
+ */
+inline void SetBankedWinAttributes(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *attributes, UBYTE bank)
+{
+    VBK_REG = VBK_ATTRIBUTES;
+    SetBankedWinTiles(x, y, w, h, attributes, bank);
+    VBK_REG = VBK_TILES;
+}
 
 /**
  * Read far pointer from banked memory location into dest (non-reentrant!)
