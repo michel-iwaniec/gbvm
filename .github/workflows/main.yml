@@ -37,7 +37,7 @@ jobs:
 
       - name: Fetch dependencies
         run: |
-          curl -L https://github.com/gbdk-2020/gbdk-2020/releases/download/gbdk-next/gbdk-linux64.tar.gz > gbdk-linux64.tar.gz
+          curl -L https://github.com/gbdk-2020/gbdk-2020/releases/latest/download/gbdk-linux64.tar.gz > gbdk-linux64.tar.gz
           sudo mkdir /gbdk
           sudo tar -xvzf gbdk-linux64.tar.gz -C /gbdk --strip-components=1
           curl -L https://github.com/gb-studio-dev/gbvm-test-deps/archive/refs/tags/v0.0.2.zip > deps.zip
