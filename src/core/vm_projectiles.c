@@ -13,12 +13,12 @@ typedef struct projectile_launch_t {
     uint16_t angle;
 } projectile_launch_t;
 
-void vm_projectile_launch(SCRIPT_CTX * THIS, UBYTE type, INT16 idx) OLDCALL BANKED {
+void vm_projectile_launch(SCRIPT_CTX * THIS, UBYTE type, INT16 idx) VM_CALL {
     projectile_launch_t * params = VM_REF_TO_PTR(idx);
     projectile_launch(type, &params->pos, (UBYTE)params->angle);
 }
 
-void vm_projectile_load_type(SCRIPT_CTX * THIS, UBYTE dest_type, UBYTE src_type, UBYTE projectile_def_bank, const projectile_def_t * projectile_def) OLDCALL BANKED {
+void vm_projectile_load_type(SCRIPT_CTX * THIS, UBYTE dest_type, UBYTE src_type, UBYTE projectile_def_bank, const projectile_def_t * projectile_def) VM_CALL {
     THIS;
     projectile_def_t * current_def = projectile_defs + dest_type;
     far_ptr_t scene_sprites;

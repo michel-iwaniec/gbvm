@@ -8,7 +8,7 @@
 
 BANKREF(VM_GBPRINTER)
 
-void vm_print_detect(SCRIPT_CTX * THIS, INT16 idx, UBYTE delay) OLDCALL BANKED {
+void vm_print_detect(SCRIPT_CTX * THIS, INT16 idx, UBYTE delay) VM_CALL {
     uint16_t * error = VM_REF_TO_PTR(idx);
     uint8_t IE = IE_REG;
     set_interrupts(IE & ~SIO_IFLAG);
@@ -16,7 +16,7 @@ void vm_print_detect(SCRIPT_CTX * THIS, INT16 idx, UBYTE delay) OLDCALL BANKED {
     set_interrupts(IE);
 }
 
-void vm_print_overlay(SCRIPT_CTX * THIS, INT16 idx, UBYTE start, UBYTE height, UBYTE margins) OLDCALL BANKED {
+void vm_print_overlay(SCRIPT_CTX * THIS, INT16 idx, UBYTE start, UBYTE height, UBYTE margins) VM_CALL {
     uint16_t * error = VM_REF_TO_PTR(idx);
     uint8_t IE = IE_REG;
     set_interrupts(IE & ~SIO_IFLAG);

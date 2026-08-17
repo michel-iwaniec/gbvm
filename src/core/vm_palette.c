@@ -11,7 +11,7 @@
 
 BANKREF(VM_PALETTE)
 
-void vm_load_palette(SCRIPT_CTX * THIS, UBYTE mask, UBYTE options) OLDCALL BANKED {
+void vm_load_palette(SCRIPT_CTX * THIS, UBYTE mask, UBYTE options) VM_CALL {
     UBYTE bank = THIS->bank;
     #ifdef SGB
         UBYTE sgb_changes = SGB_PALETTES_NONE;
