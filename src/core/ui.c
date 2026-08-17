@@ -441,6 +441,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 text_palette = (((*++ui_text_ptr) - 1u) & 0x07u);
                 break;
             case '\r':  // 0x0d
+#if DEVICE_SUPPORTS_VRAM_READ
                 // new line and scroll the text area
                 if((ui_dest_y + 1) > (text_scroll_y + text_scroll_height-1)) {
                     uint8_t* text_scroll_addr = (text_scroll_layer == UI_TEXT_LAYER_WIN) ? get_win_xy_addr(text_scroll_x, text_scroll_y) : get_bkg_xy_addr(text_scroll_x, text_scroll_y);
@@ -456,6 +457,21 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 } else {
                     goto_xy(ui_base_x, ui_base_y+1);
                 }
+#else
+                // Without VRAM reads we cannot scroll. Clear scroll area instead
+                // new line and scroll the text area
+                if((ui_dest_y + 1) > (text_scroll_y + text_scroll_height-1)) {
+                    fill_win_rect(text_scroll_x, text_scroll_y, text_scroll_width, text_scroll_height, text_scroll_fill);
+#ifdef CGB
+                    fill_win_rect_attributes(text_scroll_x, text_scroll_y, text_scroll_width, text_scroll_height, overlay_priority | (text_palette & 0x07u));
+#endif
+                    // do new line and reset position to top of scroll window
+                    goto_xy(ui_base_x, text_scroll_y);
+                    goto_base_xy();
+                } else {
+                    goto_xy(ui_base_x, ui_base_y+1);
+                }
+#endif
                 if (vwf_current_offset) ui_print_reset();
                 break;
             case 0x05:
