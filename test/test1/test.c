@@ -3,9 +3,9 @@
 
 #include "framework/test_main.h"
 
-void core_reset_hook() {}
+void core_reset_hook(void) {}
 
-void test() {
+void test(void) {
     strcpy(result, "PASSED"); 
     delay(100);
 }

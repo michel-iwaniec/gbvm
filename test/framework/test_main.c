@@ -1,6 +1,6 @@
 #include "test_main.h"
 
-extern void test();
+extern void test(void);
 
 unsigned char result[8] = "FAILED";
 
