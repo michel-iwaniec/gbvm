@@ -382,16 +382,6 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
     }
 }
 
-void vm_test_terminate(SCRIPT_CTX * THIS, UBYTE flags) OLDCALL BANKED {
-    THIS;
-    if (flags & 1) wait_vbl_done();
-#if defined(__SDCC)
-__asm
-        ld b, b
-__endasm;
-#endif
-}
-
 // puts context into a waitable state
 void vm_idle(SCRIPT_CTX * THIS) OLDCALL BANKED {
     THIS->waitable = TRUE;
@@ -482,56 +472,6 @@ void vm_poll_loaded(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     *A = vm_loaded_state;
     vm_loaded_state = FALSE;
 }
-// call native function by far pointer;
-void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 bank, const void * ptr) OLDCALL NONBANKED NAKED {
-    dummy0; dummy1; THIS; bank; ptr; // suppress warnings
-#if defined(__SDCC) && defined(NINTENDO)
-__asm
-        ldhl sp, #8
-        ld a, (hl+)
-        ldh (__current_bank), a
-        ld (_rROMB0), a
-        ld a, (hl+)
-        ld h, (hl)
-        ld l, a
-        jp (hl)
-__endasm;
-#endif
-}
-// call the inlined native code by THIS->PC
-void vm_asm(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANKED NAKED {
-    dummy0; dummy1; THIS; // suppress warnings
-#if defined(__SDCC) && defined(NINTENDO)
-__asm
-        ldhl sp, #6
-        ld a, (hl+)
-        ld h, (hl)
-        ld l, a                 ; hl contains THIS
-
-        push hl
-
-        inc hl
-        inc hl
-        ld a, (hl-)             ; a contains THIS->bank
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; switch bank with script
-        ld a, (hl-)
-        ld l, (hl)
-        ld h, a                 ; hl contains THIS->PC
-
-        rst 0x20                ; call hl, new PC returned on stack
-
-        pop de                  ; de contains the new PC
-
-        pop hl                  ; hl contains THIS
-
-        ld (hl), e
-        inc hl
-        ld (hl), d              ; save new PC to THIS->PC
-        ret
-__endasm;
-#endif
-}
 // memset for VM variables
 void vm_memset(SCRIPT_CTX * THIS, INT16 idx, INT16 value, INT16 count) OLDCALL BANKED {
     for (INT16 i = 0, *v = VM_REF_TO_PTR(idx); i != count; i++) *v++ = value;
@@ -541,116 +481,7 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
     memcpy(VM_REF_TO_PTR(idxA), VM_REF_TO_PTR(idxB), count << 1);
 }
 
-// executes one step in the passed context
-// return zero if script end
-// VM_STEP must not be called from outside, but not declared static, because the symbol address is required for the GBStudio debugger
-static FASTUBYTE current_fn_bank;
-static FASTUBYTE current_fn_nargs;
-static UINT16 current_sp;
-UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR {
-    CTX;
-#if defined(__SDCC) && defined(NINTENDO)
-__asm
-        ld b, d
-        ld c, e                 ; bc = THIS
-
-        ld a, (de)
-        ld l, a
-        inc de
-        ld a, (de)
-        ld h, a                 ; hl offset of the script
-        inc de
-
-        ld a, (de)              ; bank of the script
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; switch bank with vm code
-
-        ld a, (hl+)             ; load current instruction and return if terminator
-        or a
-        ret z                   ; exit if VM_STOP encountered
-
-        ld (_current_sp), sp
-
-        push bc                 ; store bc == THIS
-        push hl
-
-        ld h, #0
-        ld l, a
-        add hl, hl
-        add hl, hl              ; hl = instruction * sizeof(SCRIPT_CMD)
-        dec hl
-        ld de, #_script_cmds
-        add hl, de              ; hl = &script_cmds[instruction].args_len
-
-        ld a, (hl-)
-        ldh (_current_fn_nargs), a
-        ld a, (hl-)
-        ldh (_current_fn_bank), a
-        ld a, (hl-)
-        ld b, a
-        ld c, (hl)              ; bc = fn
-
-        pop hl                  ; hl points to the next VM instruction or a first byte of the args
-        ldh a, (_current_fn_nargs)
-        srl a
-        jr nc, 4$               ; d is even?
-        ld d, (hl)              ; copy one arg onto stack
-        inc hl
-        push de
-        inc sp
-4$:
-        jr z, 1$                ; only one arg?
-2$:
-        ld d, (hl)
-        inc hl
-        ld e, (hl)
-        inc hl
-        push de
-        dec a
-        jr nz, 2$               ; loop through remaining args, copy 2 bytes at a time
-1$:
-        ld d, h
-        ld e, l                 ; de points to the next VM instruction
-
-        ld hl, #_current_sp
-        ld a, (hl+)
-        ld h, (hl)
-        ld l, a
-        dec hl
-
-        ld a, (hl-)
-        ld l, (hl)
-        ld h, a                 ; hl = THIS
-
-        push hl                 ; pushing THIS
-
-        ld a, e
-        ld (hl+), a
-        ld (hl), d              ; PC = PC + sizeof(instruction) + args_len
-
-        ld hl, #_current_sp
-        ld a, (hl+)
-        ld h, (hl)
-        ld l, a
-        push hl                 ; not used
-        push hl                 ; SP to restore
-
-        ldh a, (_current_fn_bank)   ; a = script_bank
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; switch bank with functions
-
-        ld h, b                 ; restore function pointer
-        ld l, c
-        rst 0x20                ; call hl
-
-        pop hl
-        ld sp, hl
-
-        ld a, #1                ; instruction executed
-        ret
-__endasm;
-#endif
-}
+UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR;
 
 // global shared script memory
 UWORD script_memory[VM_HEAP_SIZE + (VM_MAX_CONTEXTS * VM_CONTEXT_STACK_SIZE)];
