@@ -7,7 +7,7 @@
 ; void vm_test_terminate(SCRIPT_CTX * THIS, UBYTE flags) OLDCALL BANKED
 _vm_test_terminate::
         and #1
-        call nz, _wait_vbl_done
+        call nz, _vsync
         ld b, b
         ret
 
