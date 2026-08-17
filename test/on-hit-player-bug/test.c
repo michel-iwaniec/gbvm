@@ -2,9 +2,9 @@
 #include "test_main.h"
 #include <string.h>
 
-void core_reset_hook() { core_reset(); }
+void core_reset_hook(void) { core_reset(); }
 
-void test() {
+void test(void) {
   strcpy(result, "PASSED");
   core_run();
 }
