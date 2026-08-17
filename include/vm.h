@@ -22,13 +22,17 @@ BANKREF_EXTERN(VM_MAIN)
 #define FN_ARG7 -8
 
 #if defined(NINTENDO)
+#define VM_CALL OLDCALL BANKED
 #define STEP_FUNC_ATTR
 typedef UWORD DUMMY0_t;
 typedef UWORD DUMMY1_t;
+#define VM_CALL_NONBANKED OLDCALL NONBANKED
 #elif defined(SEGA)
+#define VM_CALL OLDCALL BANKED
 #define STEP_FUNC_ATTR Z88DK_FASTCALL
 typedef UBYTE DUMMY0_t;
 typedef UWORD DUMMY1_t;
+#define VM_CALL_NONBANKED OLDCALL NONBANKED
 #endif
 
 typedef void * SCRIPT_CMD_FN;
@@ -148,45 +152,45 @@ extern UBYTE vm_exception_params_bank;
 extern const void * vm_exception_params_offset;
 
 // script core functions
-void vm_push(SCRIPT_CTX * THIS, UWORD value) OLDCALL BANKED;
-UWORD vm_pop(SCRIPT_CTX * THIS, UBYTE n) OLDCALL BANKED;
-void vm_call(SCRIPT_CTX * THIS, UBYTE * pc) OLDCALL BANKED;
-void vm_ret(SCRIPT_CTX * THIS, UBYTE n) OLDCALL BANKED;
-void vm_call_far(SCRIPT_CTX * THIS, UBYTE bank, UBYTE * pc) OLDCALL BANKED;
-void vm_ret_far(SCRIPT_CTX * THIS, UBYTE n) OLDCALL BANKED;
-void vm_loop(SCRIPT_CTX * THIS, INT16 idx, UINT8 * pc, UBYTE n) OLDCALL BANKED;
-void vm_switch(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idx, UBYTE size, UBYTE n) OLDCALL NONBANKED;
-void vm_jump(SCRIPT_CTX * THIS, UBYTE * pc) OLDCALL BANKED;
-void vm_invoke(SCRIPT_CTX * THIS, UBYTE bank, UBYTE * fn, UBYTE nparams, INT16 idx) OLDCALL BANKED;
-void vm_beginthread(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE bank, UBYTE * pc, INT16 idx, UBYTE nargs) OLDCALL NONBANKED;
-void vm_if(SCRIPT_CTX * THIS, UBYTE condition, INT16 idxA, INT16 idxB, UBYTE * pc, UBYTE n) OLDCALL BANKED;
-void vm_if_const(SCRIPT_CTX * THIS, UBYTE condition, INT16 idxA, INT16 B, UBYTE * pc, UBYTE n) OLDCALL BANKED;
-void vm_push_value(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_push_value_ind(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_push_reference(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_reserve(SCRIPT_CTX * THIS, INT8 ofs) OLDCALL BANKED;
-void vm_set(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED;
-void vm_set_const(SCRIPT_CTX * THIS, INT16 idx, UWORD value) OLDCALL BANKED;
-void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANKED;
-void vm_join(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_terminate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_idle(SCRIPT_CTX * THIS) OLDCALL BANKED;
-void vm_get_tlocal(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED;
-void vm_get_far(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idxA, UBYTE size, UBYTE bank, UBYTE * addr) OLDCALL NONBANKED;
-void vm_init_rng(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_rand(SCRIPT_CTX * THIS, INT16 idx, UINT16 min, UINT16 limit) OLDCALL BANKED;
-void vm_lock(SCRIPT_CTX * THIS) OLDCALL BANKED;
-void vm_unlock(SCRIPT_CTX * THIS) OLDCALL BANKED;
-void vm_raise(SCRIPT_CTX * THIS, UBYTE code, UBYTE size) OLDCALL BANKED;
-void vm_set_indirect(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED;
-void vm_get_indirect(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED;
-void vm_test_terminate(SCRIPT_CTX * THIS, UBYTE flags) OLDCALL BANKED;
-void vm_poll_loaded(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 bank, const void * ptr) OLDCALL NONBANKED;
-void vm_asm(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANKED NAKED;
-void vm_memset(SCRIPT_CTX * THIS, INT16 idx, INT16 value, INT16 count) OLDCALL BANKED;
-void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL BANKED;
-void vm_rate_limit_const(SCRIPT_CTX * THIS, UWORD n_frames, INT16 idxA, UBYTE * pc) OLDCALL BANKED;
+void vm_push(SCRIPT_CTX * THIS, UWORD value) VM_CALL;
+UWORD vm_pop(SCRIPT_CTX * THIS, UBYTE n) VM_CALL;
+void vm_call(SCRIPT_CTX * THIS, UBYTE * pc) VM_CALL;
+void vm_ret(SCRIPT_CTX * THIS, UBYTE n) VM_CALL;
+void vm_call_far(SCRIPT_CTX * THIS, UBYTE bank, UBYTE * pc) VM_CALL;
+void vm_ret_far(SCRIPT_CTX * THIS, UBYTE n) VM_CALL;
+void vm_loop(SCRIPT_CTX * THIS, INT16 idx, UINT8 * pc, UBYTE n) VM_CALL;
+void vm_switch(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idx, UBYTE size, UBYTE n) VM_CALL_NONBANKED;
+void vm_jump(SCRIPT_CTX * THIS, UBYTE * pc) VM_CALL;
+void vm_invoke(SCRIPT_CTX * THIS, UBYTE bank, UBYTE * fn, UBYTE nparams, INT16 idx) VM_CALL;
+void vm_beginthread(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE bank, UBYTE * pc, INT16 idx, UBYTE nargs) VM_CALL_NONBANKED;
+void vm_if(SCRIPT_CTX * THIS, UBYTE condition, INT16 idxA, INT16 idxB, UBYTE * pc, UBYTE n) VM_CALL;
+void vm_if_const(SCRIPT_CTX * THIS, UBYTE condition, INT16 idxA, INT16 B, UBYTE * pc, UBYTE n) VM_CALL;
+void vm_push_value(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_push_value_ind(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_push_reference(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_reserve(SCRIPT_CTX * THIS, INT8 ofs) VM_CALL;
+void vm_set(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL;
+void vm_set_const(SCRIPT_CTX * THIS, INT16 idx, UWORD value) VM_CALL;
+void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) VM_CALL_NONBANKED;
+void vm_join(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_terminate(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_idle(SCRIPT_CTX * THIS) VM_CALL;
+void vm_get_tlocal(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL;
+void vm_get_far(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idxA, UBYTE size, UBYTE bank, UBYTE * addr) VM_CALL_NONBANKED;
+void vm_init_rng(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_rand(SCRIPT_CTX * THIS, INT16 idx, UINT16 min, UINT16 limit) VM_CALL;
+void vm_lock(SCRIPT_CTX * THIS) VM_CALL;
+void vm_unlock(SCRIPT_CTX * THIS) VM_CALL;
+void vm_raise(SCRIPT_CTX * THIS, UBYTE code, UBYTE size) VM_CALL;
+void vm_set_indirect(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL;
+void vm_get_indirect(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL;
+void vm_test_terminate(SCRIPT_CTX * THIS, UBYTE flags) VM_CALL;
+void vm_poll_loaded(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 bank, const void * ptr) VM_CALL_NONBANKED;
+void vm_asm(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) VM_CALL_NONBANKED NAKED;
+void vm_memset(SCRIPT_CTX * THIS, INT16 idx, INT16 value, INT16 count) VM_CALL;
+void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) VM_CALL;
+void vm_rate_limit_const(SCRIPT_CTX * THIS, UWORD n_frames, INT16 idxA, UBYTE * pc) VM_CALL;
 
 // return TRUE if VM is in locked state
 inline UBYTE VM_ISLOCKED(void) {

@@ -10,7 +10,7 @@
 
 BANKREF_EXTERN(VM_CAMERA)
 
-void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lock_camera) OLDCALL BANKED;
-void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
+void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lock_camera) VM_CALL;
+void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
 
 #endif

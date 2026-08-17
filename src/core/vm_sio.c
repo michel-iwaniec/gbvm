@@ -21,13 +21,13 @@ BANKREF(VM_SIO)
 
 UBYTE exchange_state = EXCHANGE_COMPLETED;
 
-void vm_sio_set_mode(SCRIPT_CTX * THIS, UBYTE mode) OLDCALL BANKED {
+void vm_sio_set_mode(SCRIPT_CTX * THIS, UBYTE mode) VM_CALL {
     THIS;
     exchange_state = EXCHANGE_COMPLETED;
     SIO_set_mode(mode);
 }
 
-void vm_sio_exchange(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, UBYTE len) OLDCALL BANKED {
+void vm_sio_exchange(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, UBYTE len) VM_CALL {
     INT16 * data;
     // terminate if something is wrong
     if (link_operation_mode == LINK_MODE_NONE) {

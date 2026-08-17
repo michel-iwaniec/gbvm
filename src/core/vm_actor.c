@@ -122,7 +122,7 @@ static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bo
     return end_pos;
 }
 
-void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
 
@@ -309,7 +309,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     return;
 }
 
-void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
 
     // indicate waitable state of context
     THIS->waitable = 1;
@@ -365,7 +365,7 @@ void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     return;
 }
 
-void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     if (actor == &PLAYER) {
@@ -376,7 +376,7 @@ void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     if (actor == &PLAYER) {
@@ -387,7 +387,7 @@ void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_begin_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_begin_update(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_pos_t * params = VM_REF_TO_PTR(idx);
@@ -398,7 +398,7 @@ void vm_actor_begin_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_terminate_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_terminate_update(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_pos_t * params = VM_REF_TO_PTR(idx);
@@ -409,18 +409,18 @@ void vm_actor_terminate_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_set_dir(SCRIPT_CTX * THIS, INT16 idx, direction_e dir) OLDCALL BANKED {
+void vm_actor_set_dir(SCRIPT_CTX * THIS, INT16 idx, direction_e dir) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_set_dir(actors + *n_actor, dir, FALSE);
 }
 
-void vm_actor_set_anim(SCRIPT_CTX * THIS, INT16 idx, INT16 idx_anim) OLDCALL BANKED {
+void vm_actor_set_anim(SCRIPT_CTX * THIS, INT16 idx, INT16 idx_anim) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     UBYTE * n_anim = VM_REF_TO_PTR(idx_anim);
     actor_set_anim(actors + *n_actor, *n_anim);
 }
 
-void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_pos_t * params = VM_REF_TO_PTR(idx);
@@ -430,7 +430,7 @@ void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor->pos.y = params->Y;
 }
 
-void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_pos_t * params = VM_REF_TO_PTR(idx);
@@ -440,7 +440,7 @@ void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     params->Y = actor->pos.y;
 }
 
-void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
+void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) VM_CALL {
     UWORD * A;
     actor_t *actor;
 
@@ -452,7 +452,7 @@ void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
 }
 
 static const UBYTE dir_angle_lookup[4] = { 128, 64, 0, 192 };
-void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
+void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) VM_CALL {
     UWORD * A;
     actor_t *actor;
 
@@ -463,8 +463,7 @@ void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED
     *A = dir_angle_lookup[actor->dir];
 }
 
-void vm_actor_emote(SCRIPT_CTX * THIS, INT16 idx, UBYTE emote_tiles_bank, const unsigned char *emote_tiles) OLDCALL BANKED {
-
+void vm_actor_emote(SCRIPT_CTX * THIS, INT16 idx, UBYTE emote_tiles_bank, const UBYTE *emote_tiles) VM_CALL {
     // on first call load emote sprite
     if (THIS->flags == 0) {
         UBYTE * n_actor = VM_REF_TO_PTR(idx);
@@ -485,7 +484,7 @@ void vm_actor_emote(SCRIPT_CTX * THIS, INT16 idx, UBYTE emote_tiles_bank, const 
     }
 }
 
-void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
     act_set_bounds_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
@@ -495,7 +494,7 @@ void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor->bounds.bottom = params->BOTTOM;
 }
 
-void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) OLDCALL BANKED {
+void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     load_sprite(actor->base_tile, spritesheet, spritesheet_bank);
@@ -506,27 +505,27 @@ void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_ba
     actor_reset_anim(actor);
 }
 
-void vm_actor_replace_tile(SCRIPT_CTX * THIS, INT16 idx, UBYTE target_tile, UBYTE tileset_bank, const tileset_t * tileset, UBYTE start_tile, UBYTE length) OLDCALL BANKED {
+void vm_actor_replace_tile(SCRIPT_CTX * THIS, INT16 idx, UBYTE target_tile, UBYTE tileset_bank, const tileset_t * tileset, UBYTE start_tile, UBYTE length) VM_CALL {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
     SetBankedSpriteData(actor->base_tile + target_tile, length, tileset->tiles + (start_tile << 4), tileset_bank);
 }
 
-void vm_actor_set_anim_tick(SCRIPT_CTX * THIS, INT16 idx, UBYTE tick) OLDCALL BANKED {
+void vm_actor_set_anim_tick(SCRIPT_CTX * THIS, INT16 idx, UBYTE tick) VM_CALL {
     actor_t *actor;
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor = actors + *n_actor;
     actor->anim_tick = tick;
 }
 
-void vm_actor_set_move_speed(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) OLDCALL BANKED {
+void vm_actor_set_move_speed(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) VM_CALL {
     actor_t *actor;
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor = actors + *n_actor;
     actor->move_speed = speed;
 }
 
-void vm_actor_set_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_set_anim_frame(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_frame_t * params = VM_REF_TO_PTR(idx);
@@ -535,7 +534,7 @@ void vm_actor_set_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor_set_frame_offset(actor, params->FRAME);
 }
 
-void vm_actor_get_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_get_anim_frame(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_set_frame_t * params = VM_REF_TO_PTR(idx);
@@ -544,7 +543,7 @@ void vm_actor_get_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     params->FRAME = actor_get_frame_offset(actor);
 }
 
-void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) OLDCALL BANKED {
+void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) VM_CALL {
     actor_t *actor;
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor = actors + *n_actor;
@@ -552,7 +551,7 @@ void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) OLDCALL B
     actor_reset_anim(actor);
 }
 
-void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED {
+void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL {
     actor_t *actor;
     UBYTE * n_actor = VM_REF_TO_PTR(idxA);
     actor = actors + *n_actor;
@@ -569,13 +568,13 @@ void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) 
     actor_reset_anim(actor);
 }
 
-void vm_actor_set_flags(SCRIPT_CTX * THIS, INT16 idx, UBYTE flags, UBYTE mask) OLDCALL BANKED {
+void vm_actor_set_flags(SCRIPT_CTX * THIS, INT16 idx, UBYTE flags, UBYTE mask) VM_CALL {
     actor_t * actor = actors + *(UBYTE *)VM_REF_TO_PTR(idx);
     actor->flags |= (mask & flags);
     actor->flags &= ~(mask & ~flags);
 }
 
-void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
+void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     actor_t *actor;
 
     THIS->waitable = TRUE;
@@ -628,7 +627,7 @@ void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BAN
     }
 }
 
-void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
+void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     static actor_t *actor;
 
     // indicate waitable state of context
@@ -694,7 +693,7 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
     return;
 }
 
-void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
+void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     static actor_t *actor;
 
     // indicate waitable state of context
@@ -759,7 +758,7 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED
     return;
 }
 
-void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED {
+void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     static actor_t *actor;
 
     // indicate waitable state of context
@@ -866,7 +865,7 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKE
     return;
 }
 
-void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);
@@ -882,7 +881,7 @@ void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);
@@ -898,7 +897,7 @@ void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     }
 }
 
-void vm_actor_set_anim_moving(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_set_anim_moving(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
     actor_t *actor;
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);

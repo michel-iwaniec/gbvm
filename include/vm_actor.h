@@ -16,38 +16,38 @@ BANKREF_EXTERN(VM_ACTOR)
 #define ACTOR_ATTR_RELATIVE_SNAP_PX   0x08
 #define ACTOR_ATTR_RELATIVE_SNAP_TILE 0x10
 #define ACTOR_ATTR_RELATIVE           ACTOR_ATTR_RELATIVE_SNAP_PX | ACTOR_ATTR_RELATIVE_SNAP_TILE
-void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
+void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
 
-void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_dir(SCRIPT_CTX * THIS, INT16 idx, direction_e dir) OLDCALL BANKED;
-void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_anim(SCRIPT_CTX * THIS, INT16 idx, INT16 idx_anim) OLDCALL BANKED;
-void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_emote(SCRIPT_CTX * THIS, INT16 idx, UBYTE emote_tiles_bank, const unsigned char *emote_tiles) OLDCALL BANKED;
-void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) OLDCALL BANKED;
-void vm_actor_replace_tile(SCRIPT_CTX * THIS, INT16 idx, UBYTE target_tile, UBYTE tileset_bank, const tileset_t * tileset, UBYTE start_tile, UBYTE length) OLDCALL BANKED;
-void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_hidden(SCRIPT_CTX * THIS, INT16 idx, UBYTE hidden) OLDCALL BANKED;
-void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED;
-void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED;
-void vm_actor_set_anim_tick(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) OLDCALL BANKED;
-void vm_actor_set_move_speed(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) OLDCALL BANKED;
-void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED;
-void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED;
-void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED;
-void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) OLDCALL BANKED;
-void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_anim_moving(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_flags(SCRIPT_CTX * THIS, INT16 idx, UBYTE flags, UBYTE mask) OLDCALL BANKED;
+void vm_actor_move_cancel(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_activate(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_dir(SCRIPT_CTX * THIS, INT16 idx, direction_e dir) VM_CALL;
+void vm_actor_deactivate(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_anim(SCRIPT_CTX * THIS, INT16 idx, INT16 idx_anim) VM_CALL;
+void vm_actor_set_pos(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_emote(SCRIPT_CTX * THIS, INT16 idx, UBYTE emote_tiles_bank, const UBYTE *emote_tiles) VM_CALL;
+void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) VM_CALL;
+void vm_actor_replace_tile(SCRIPT_CTX * THIS, INT16 idx, UBYTE target_tile, UBYTE tileset_bank, const tileset_t * tileset, UBYTE start_tile, UBYTE length) VM_CALL;
+void vm_actor_get_pos(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_hidden(SCRIPT_CTX * THIS, INT16 idx, UBYTE hidden) VM_CALL;
+void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) VM_CALL;
+void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) VM_CALL;
+void vm_actor_set_anim_tick(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) VM_CALL;
+void vm_actor_set_move_speed(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed) VM_CALL;
+void vm_actor_move_to_init(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL;
+void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL;
+void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL;
+void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL;
+void vm_actor_move_to_set_dir_x(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_move_to_set_dir_y(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_anim_moving(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_flags(SCRIPT_CTX * THIS, INT16 idx, UBYTE flags, UBYTE mask) VM_CALL;
 
-void vm_actor_begin_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_terminate_update(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_get_anim_frame(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED;
-void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) OLDCALL BANKED;
-void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED;
+void vm_actor_begin_update(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_terminate_update(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_anim_frame(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_get_anim_frame(SCRIPT_CTX * THIS, INT16 idx) VM_CALL;
+void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) VM_CALL;
+void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) VM_CALL;
 
 #endif
