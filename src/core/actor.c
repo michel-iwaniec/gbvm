@@ -17,6 +17,7 @@
 #include "ui.h"
 #include "vm.h"
 #include "macro.h"
+#include "data_manager.h"
 
 #ifdef STRICT
     #include <gb/bgb_emu.h>
@@ -181,7 +182,7 @@ void actors_render(void) NONBANKED {
             screen_y += emote_offsets[emote_timer];
         }
 
-        const metasprite_t * emote_metasprite = ((LCDC_REG & LCDCF_OBJ16) ? emote_metasprite_8_16 : emote_metasprite_8_8);
+        const metasprite_t * emote_metasprite = ((sprite_mode == sprites_8x16) ? emote_metasprite_8_16 : emote_metasprite_8_8);
         allocated_hardware_sprites += move_metasprite(
             emote_metasprite,
             allocated_sprite_tiles,

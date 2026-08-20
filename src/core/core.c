@@ -215,6 +215,7 @@ void core_run(void) BANKED {
     palette_init();
 
     LCDC_REG = LCDCF_OFF | LCDCF_WIN9C00 | LCDCF_WINON | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON;
+    sprite_mode = sprites_8x16;
 
     WX_REG = DEVICE_WINDOW_PX_OFFSET_X;
     WY_REG = MENU_CLOSED_Y;

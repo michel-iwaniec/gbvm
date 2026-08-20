@@ -22,6 +22,7 @@ extern UBYTE actors_len;
 extern UBYTE sprites_len;
 extern UBYTE actors_len;
 extern LCD_isr_e scene_LCD_type;
+extern sprite_mode_e sprite_mode;
 
 #define SCENE_STACK_SIZE    8
 extern scene_stack_item_t scene_stack[SCENE_STACK_SIZE];
