@@ -3,9 +3,9 @@
 
 // Used in LCD interrupt handlers to wait until writing PPU registers is safe
 #ifdef NINTENDO
-#define LCD_WAIT while(STAT_REG & STATF_BUSY)
+#define HBLANK_WAIT while(STAT_REG & STATF_BUSY)
 #else
-#define LCD_WAIT
+#define HBLANK_WAIT
 #endif
 
 extern UINT8 hide_sprites;
