@@ -44,6 +44,7 @@ UBYTE projectiles_len;
 UBYTE player_sprite_len;
 scene_type_e scene_type;
 LCD_isr_e scene_LCD_type;
+sprite_mode_e sprite_mode;
 
 const far_ptr_t spritesheet_none_far = TO_FAR_PTR_T(spritesheet_none);
 

@@ -27,6 +27,11 @@
 #define COLLISION_GROUP_FLAG_SOLID COLLISION_GROUP_FLAG_4
 
 typedef enum {
+    sprites_8x16,
+    sprites_8x8
+} sprite_mode_e;
+
+typedef enum {
     LCD_simple,
     LCD_parallax,
     LCD_fullscreen
