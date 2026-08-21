@@ -57,7 +57,7 @@ void scroll_repaint(void) BANKED;
  * @param h height of the area
  * @param fill tile id to fill the bottom row
  */
-void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) OLDCALL BANKED PRESERVES_REGS(b, c);
+void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) OLDCALL BANKED;
 
 /**
  * copies scroll position variables into double buffered copies
